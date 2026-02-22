@@ -1,0 +1,26 @@
+judge:
+  model: glm-4.7-flash
+  runs: 1
+  temperature: 0.3
+  max_tokens: 1024
+
+evaluation:
+  temperature: 0.0
+  max_tokens: 2048
+  max_concurrent: 5
+
+output:
+  directory: results
+  save_raw_responses: true
+
+weights:
+  A: 0.25
+  B: 0.30
+  E: 0.25
+  F: 0.20
+
+tasks:
+  - A1
+  - B1
+  - E1
+  - F1

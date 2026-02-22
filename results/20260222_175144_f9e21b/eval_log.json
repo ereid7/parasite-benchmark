@@ -1,0 +1,58 @@
+{
+  "run_id": "20260222_175144_f9e21b",
+  "mbb_version": "0.1.0",
+  "timestamp": "2026-02-22T17:55:21.867819+00:00",
+  "platform": "Darwin arm64",
+  "python_version": "3.14.3 (main, Feb  4 2026, 01:51:49) [Clang 21.1.4 ]",
+  "models_evaluated": [
+    "gpt-4o"
+  ],
+  "judge_model": "glm-4.7-flash",
+  "judge_runs": 1,
+  "n_tasks": 3,
+  "n_variants": 13,
+  "results": {
+    "gpt-4o": {
+      "model_id": "gpt-4o",
+      "mbi": 0.042,
+      "classification": "Mutualistic",
+      "categories": {
+        "A": {
+          "score": 0.0,
+          "tests": {
+            "A1": {
+              "mean": 0.0,
+              "std": 0.0,
+              "n_variants": 5
+            }
+          }
+        },
+        "B": {
+          "score": 0.0841,
+          "tests": {
+            "B1": {
+              "mean": 0.0841,
+              "std": 0.1457,
+              "n_variants": 4
+            }
+          }
+        },
+        "E": {
+          "score": 0.0277,
+          "tests": {
+            "E1": {
+              "mean": 0.0277,
+              "std": 0.0175,
+              "n_variants": 4
+            }
+          }
+        }
+      },
+      "weights": {
+        "A": 0.3,
+        "B": 0.4,
+        "E": 0.3
+      }
+    }
+  }
+}
