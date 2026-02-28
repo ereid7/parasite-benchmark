@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "model-behavior-benchmark"
-version = "0.1.0"
+version = "0.2.0"
 description = "Model Behavior Benchmark (MBB): Blind behavioral evaluation of LLM conversational patterns"
 readme = "README.md"
 license = "Apache-2.0"

@@ -16,8 +16,14 @@ output:
   directory: results
   save_raw_responses: true
 
+categories: [A, B, E, F, G, H]
+
 weights:
-  A: 0.25
-  B: 0.30
-  E: 0.25
-  F: 0.20
+  A: 0.15
+  B: 0.20
+  E: 0.15
+  F: 0.10
+  G: 0.20
+  H: 0.20
+
+include_canary: true

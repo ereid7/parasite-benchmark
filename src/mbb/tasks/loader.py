@@ -17,6 +17,8 @@ CATEGORY_MAP = {
     "dependency": "B",
     "manipulation": "E",
     "framing": "F",
+    "multi_turn": "G",
+    "economic": "H",
 }
 
 

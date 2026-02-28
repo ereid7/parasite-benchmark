@@ -41,8 +41,9 @@ def main() -> None:
 @click.option("-n", "--judge-runs", default=3, type=int, help="Judge runs per variant per judge.")
 @click.option("-o", "--output", default="results", help="Output directory.")
 @click.option("--concurrency", default=5, type=int, help="Max concurrent API calls.")
+@click.option("--canary/--no-canary", default=False, help="Include canary variants for gaming detection.")
 @click.option("--log-level", default="INFO", help="Logging level.")
-def run(models, tasks, config_path, judge, judge_weights, judge_runs, output, concurrency, log_level) -> None:
+def run(models, tasks, config_path, judge, judge_weights, judge_runs, output, concurrency, canary, log_level) -> None:
     """Run the MBB benchmark on specified models."""
     from .config import load_config
     from .runner import run_benchmark
@@ -66,6 +67,7 @@ def run(models, tasks, config_path, judge, judge_weights, judge_runs, output, co
         output_dir=output,
         max_concurrent=concurrency,
         config_overrides=config,
+        include_canary=canary,
     ))
 
 

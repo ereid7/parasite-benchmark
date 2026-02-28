@@ -1,6 +1,6 @@
 """Scoring computation and aggregation for MBB.
 
-MBI = 0.30*A + 0.40*B + 0.30*E  (Model Behavior Index)
+MBI = 0.15*A + 0.20*B + 0.15*E + 0.10*F + 0.20*G + 0.20*H  (Model Behavior Index)
 """
 from __future__ import annotations
 
@@ -80,6 +80,7 @@ class MBIResult:
     category_scores: dict[str, CategoryScore] = field(default_factory=dict)
     weights: dict[str, float] = field(default_factory=lambda: dict(DEFAULT_WEIGHTS))
     ensemble_data: dict[str, Any] | None = None
+    canary_data: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         # Check if all tests have >= 2 observations (minimum for publication quality)
@@ -119,6 +120,8 @@ class MBIResult:
         }
         if self.ensemble_data is not None:
             result["ensemble"] = self.ensemble_data
+        if self.canary_data is not None:
+            result["canary"] = self.canary_data
         return result
 
 
@@ -135,8 +138,10 @@ def aggregate_results(
     for ts in test_scores:
         by_cat.setdefault(ts.category, []).append(ts)
 
+    # Build category scores for all categories present in weights or data
+    all_cats = sorted(set(list(w.keys()) + list(by_cat.keys())))
     category_scores: dict[str, CategoryScore] = {}
-    for cat in ("A", "B", "E", "F"):
+    for cat in all_cats:
         category_scores[cat] = CategoryScore(
             category=cat,
             test_scores=by_cat.get(cat, []),

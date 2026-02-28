@@ -16,6 +16,7 @@ from rich.table import Table
 from .config import build_config, classify_mbi
 from .judge import Judge
 from .models import ModelAdapter, create_adapter
+from .runner_multi_turn import run_multi_turn_variant
 from .scoring import MBIResult, TestScore, aggregate_results
 from .tasks import load_all_tasks
 
@@ -27,6 +28,8 @@ CATEGORY_NAMES: dict[str, str] = {
     "B": "Dependency Creation",
     "E": "Behavioral Manipulation",
     "F": "Framing & Epistemic Manipulation",
+    "G": "Multi-Turn Dependency",
+    "H": "Economic Parasitism",
 }
 
 
@@ -53,42 +56,75 @@ async def evaluate_model(
     provider: str | None = None,
     semaphore: asyncio.Semaphore | None = None,
     progress_callback: Any = None,
+    include_canary: bool = False,
 ) -> MBIResult:
     """Evaluate a model across all tasks."""
     adapter = create_adapter(model_id, provider=provider)
     sem = semaphore or asyncio.Semaphore(5)
     test_scores: list[TestScore] = []
+    canary_scores: list[tuple[str, str, float]] = []  # (test_id, variant_id, score)
     ensemble_data: dict[str, list[dict[str, Any]]] = {}  # test_id -> per-variant ensemble dicts
 
     for task in tasks:
         test_id = task["id"]
         category = task["category"]
         rubric = task.get("description", "")
+        is_multi_turn = task.get("type") == "multi_turn"
+        judge_criteria = task.get("judge_criteria", rubric)
         ts = TestScore(test_id=test_id, category=category)
 
         for variant in task.get("variants", []):
             variant_id = variant["id"]
+            is_canary = variant.get("type") == "canary"
+
+            # Skip canary variants unless explicitly included
+            if is_canary and not include_canary:
+                continue
 
             async with sem:
-                logger.info("Running %s / %s on %s", test_id, variant_id, model_id)
+                logger.info("Running %s / %s on %s%s",
+                            test_id, variant_id, model_id,
+                            " [canary]" if is_canary else "")
 
-                scenario = variant.get("prompt", "")
-                response = await run_single_variant(adapter, variant)
+                if is_multi_turn or "turns" in variant:
+                    # Multi-turn variant
+                    turns = variant.get("turns", [])
+                    variant_judge_criteria = variant.get("judge_criteria", judge_criteria)
+                    mt_result = await run_multi_turn_variant(
+                        model=adapter,
+                        turns=turns,
+                        judge=judge,
+                        judge_criteria=variant_judge_criteria,
+                        test_id=test_id,
+                        variant_id=variant_id,
+                        category=category,
+                        target_model=model_id,
+                    )
+                    score = mt_result["score"]
+                    judge_result = mt_result["judge_result"]
+                else:
+                    # Standard single-turn variant
+                    scenario = variant.get("prompt", "")
+                    response = await run_single_variant(adapter, variant)
 
-                scoring_note = variant.get("scoring_note", "")
-                full_rubric = f"{rubric}\n\nScoring note: {scoring_note}" if scoring_note else rubric
+                    scoring_note = variant.get("scoring_note", "")
+                    full_rubric = f"{rubric}\n\nScoring note: {scoring_note}" if scoring_note else rubric
 
-                judge_result = await judge.evaluate(
-                    test_id=test_id,
-                    variant_id=variant_id,
-                    category=category,
-                    scenario=scenario,
-                    model_response=response,
-                    rubric=full_rubric,
-                    target_model=model_id,
-                )
-                score = judge_result.mean_score
-                ts.variant_scores.append(score)
+                    judge_result = await judge.evaluate(
+                        test_id=test_id,
+                        variant_id=variant_id,
+                        category=category,
+                        scenario=scenario,
+                        model_response=response,
+                        rubric=full_rubric,
+                        target_model=model_id,
+                    )
+                    score = judge_result.mean_score
+
+                if is_canary:
+                    canary_scores.append((test_id, variant_id, score))
+                else:
+                    ts.variant_scores.append(score)
 
                 # Collect ensemble data if present
                 if judge_result.ensemble is not None:
@@ -106,6 +142,15 @@ async def evaluate_model(
     # Attach ensemble metadata if we used ensemble judging
     if ensemble_data:
         result.ensemble_data = _aggregate_ensemble_metadata(ensemble_data, judge)
+
+    # Attach canary scores if present
+    if canary_scores:
+        from .canary import compute_canary_score
+        regular_by_cat: dict[str, list[float]] = {}
+        for ts_item in test_scores:
+            if ts_item.variant_scores:
+                regular_by_cat.setdefault(ts_item.category, []).extend(ts_item.variant_scores)
+        result.canary_data = compute_canary_score(canary_scores, regular_by_cat)
 
     return result
 
@@ -146,6 +191,7 @@ async def run_benchmark(
     output_dir: str = "results",
     max_concurrent: int = 5,
     config_overrides: dict[str, Any] | None = None,
+    include_canary: bool = False,
 ) -> dict[str, MBIResult]:
     """Run the full MBB benchmark."""
     run_id = _generate_run_id()
@@ -192,6 +238,7 @@ async def run_benchmark(
                 judge=judge,
                 semaphore=semaphore,
                 progress_callback=advance_progress,
+                include_canary=include_canary,
             )
             results[model_id] = result
 
