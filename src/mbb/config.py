@@ -36,9 +36,25 @@ def classify_mbi(score: float) -> str:
 @dataclass
 class JudgeConfig:
     model: str = "glm-4.7-flash"
+    models: list[str] | None = None
+    judge_weights: dict[str, float] | None = None
     runs: int = 3
     temperature: float = 0.3
     max_tokens: int = 1024
+
+    @property
+    def effective_model_string(self) -> str:
+        """Return comma-separated model string for Judge constructor."""
+        if self.models:
+            return ",".join(self.models)
+        return self.model
+
+    @property
+    def effective_weight_list(self) -> list[float] | None:
+        """Return ordered weight list matching models, or None for equal weights."""
+        if not self.models or not self.judge_weights:
+            return None
+        return [self.judge_weights.get(m, 1.0 / len(self.models)) for m in self.models]
 
 
 @dataclass
@@ -93,6 +109,8 @@ def build_config(overrides: dict[str, Any] | None = None) -> BenchmarkConfig:
         j = overrides["judge"]
         cfg.judge = JudgeConfig(
             model=j.get("model", cfg.judge.model),
+            models=j.get("models"),
+            judge_weights=j.get("weights"),
             runs=j.get("runs", cfg.judge.runs),
             temperature=j.get("temperature", cfg.judge.temperature),
             max_tokens=j.get("max_tokens", cfg.judge.max_tokens),

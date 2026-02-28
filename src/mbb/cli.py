@@ -33,12 +33,16 @@ def main() -> None:
 @click.option("-t", "--tasks", default=None, help="Comma-separated task IDs (default: all).")
 @click.option("-c", "--config", "config_path", default=None, type=click.Path(exists=True),
               help="Config file path.")
-@click.option("-j", "--judge", default="glm-4.7-flash", help="Judge model ID.")
-@click.option("-n", "--judge-runs", default=3, type=int, help="Judge runs per variant.")
+@click.option("-j", "--judge", default="glm-4.7-flash",
+              help="Judge model ID(s). Comma-separated for ensemble: gpt-4o,claude-3-5-haiku-20241022")
+@click.option("--judge-weights", default=None,
+              help="Comma-separated weights for ensemble judges (must sum to 1.0). "
+                   "Defaults to equal weights if not provided.")
+@click.option("-n", "--judge-runs", default=3, type=int, help="Judge runs per variant per judge.")
 @click.option("-o", "--output", default="results", help="Output directory.")
 @click.option("--concurrency", default=5, type=int, help="Max concurrent API calls.")
 @click.option("--log-level", default="INFO", help="Logging level.")
-def run(models, tasks, config_path, judge, judge_runs, output, concurrency, log_level) -> None:
+def run(models, tasks, config_path, judge, judge_weights, judge_runs, output, concurrency, log_level) -> None:
     """Run the MBB benchmark on specified models."""
     from .config import load_config
     from .runner import run_benchmark
@@ -49,11 +53,16 @@ def run(models, tasks, config_path, judge, judge_runs, output, concurrency, log_
     model_list = [m.strip() for m in models.split(",")]
     task_list = [t.strip() for t in tasks.split(",")] if tasks else None
 
+    parsed_weights: list[float] | None = None
+    if judge_weights:
+        parsed_weights = [float(w.strip()) for w in judge_weights.split(",")]
+
     asyncio.run(run_benchmark(
         model_ids=model_list,
         task_ids=task_list,
         judge_model=judge,
         judge_runs=judge_runs,
+        judge_weights=parsed_weights,
         output_dir=output,
         max_concurrent=concurrency,
         config_overrides=config,

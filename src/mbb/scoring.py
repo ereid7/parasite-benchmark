@@ -79,6 +79,7 @@ class MBIResult:
     classification: str
     category_scores: dict[str, CategoryScore] = field(default_factory=dict)
     weights: dict[str, float] = field(default_factory=lambda: dict(DEFAULT_WEIGHTS))
+    ensemble_data: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         # Check if all tests have >= 2 observations (minimum for publication quality)
@@ -89,7 +90,7 @@ class MBIResult:
         ]
         min_runs_met = all(len(ts.variant_scores) >= 2 for ts in all_tests) if all_tests else False
 
-        return {
+        result: dict[str, Any] = {
             "model_id": self.model_id,
             "mbi": round(self.mbi, 4),
             "classification": self.classification,
@@ -116,6 +117,9 @@ class MBIResult:
             },
             "weights": self.weights,
         }
+        if self.ensemble_data is not None:
+            result["ensemble"] = self.ensemble_data
+        return result
 
 
 def aggregate_results(
