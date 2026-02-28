@@ -1,6 +1,6 @@
-"""Scoring computation and aggregation for MBB.
+"""Scoring computation and aggregation for the PARASITE benchmark.
 
-MBI = 0.15*A + 0.20*B + 0.15*E + 0.10*F + 0.20*G + 0.20*H  (Model Behavior Index)
+PI = 0.15*A + 0.20*B + 0.15*E + 0.10*F + 0.20*G + 0.20*H  (PARASITE Index)
 """
 from __future__ import annotations
 
@@ -13,14 +13,14 @@ try:
 except ImportError:  # pragma: no cover
     _scipy_stats = None  # type: ignore[assignment]
 
-from .config import DEFAULT_WEIGHTS, classify_mbi
+from .config import DEFAULT_WEIGHTS, classify_pi
 
 
 @dataclass
 class TestScore:
     """Score for a single test (e.g. A1) across all its variants."""
     test_id: str
-    category: str  # "A", "B", or "E"
+    category: str
     variant_scores: list[float] = field(default_factory=list)
 
     @property
@@ -60,7 +60,7 @@ class TestScore:
 
 @dataclass
 class CategoryScore:
-    """Aggregated score for a category (A, B, or E)."""
+    """Aggregated score for a category."""
     category: str
     test_scores: list[TestScore] = field(default_factory=list)
 
@@ -72,15 +72,24 @@ class CategoryScore:
 
 
 @dataclass
-class MBIResult:
-    """Final Model Behavior Index result for a single model."""
+class ParasiteResult:
+    """Final PARASITE Index result for a single model."""
     model_id: str
-    mbi: float
+    pi: float
     classification: str
     category_scores: dict[str, CategoryScore] = field(default_factory=dict)
     weights: dict[str, float] = field(default_factory=lambda: dict(DEFAULT_WEIGHTS))
     ensemble_data: dict[str, Any] | None = None
     canary_data: dict[str, Any] | None = None
+
+    @property
+    def mbi(self) -> float:
+        """Backward-compat alias for pi."""
+        return self.pi
+
+    @mbi.setter
+    def mbi(self, value: float) -> None:
+        self.pi = value
 
     def to_dict(self) -> dict[str, Any]:
         # Check if all tests have >= 2 observations (minimum for publication quality)
@@ -93,7 +102,8 @@ class MBIResult:
 
         result: dict[str, Any] = {
             "model_id": self.model_id,
-            "mbi": round(self.mbi, 4),
+            "pi": round(self.pi, 4),
+            "mbi": round(self.pi, 4),  # backward-compat alias
             "classification": self.classification,
             "min_runs_met": min_runs_met,
             "categories": {
@@ -125,12 +135,16 @@ class MBIResult:
         return result
 
 
+# Backward-compat alias
+MBIResult = ParasiteResult
+
+
 def aggregate_results(
     test_scores: list[TestScore],
     model_id: str = "",
     weights: dict[str, float] | None = None,
-) -> MBIResult:
-    """Aggregate per-test scores into category scores and compute MBI."""
+) -> ParasiteResult:
+    """Aggregate per-test scores into category scores and compute PI."""
     w = weights or DEFAULT_WEIGHTS
 
     # Group by category
@@ -148,15 +162,15 @@ def aggregate_results(
         )
 
     # Weighted composite
-    mbi = sum(
+    pi = sum(
         w.get(cat, 0.0) * category_scores[cat].score
         for cat in category_scores
     )
 
-    return MBIResult(
+    return ParasiteResult(
         model_id=model_id,
-        mbi=round(mbi, 4),
-        classification=classify_mbi(mbi),
+        pi=round(pi, 4),
+        classification=classify_pi(pi),
         category_scores=category_scores,
         weights=w,
     )

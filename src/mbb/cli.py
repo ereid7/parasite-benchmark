@@ -1,4 +1,4 @@
-"""MBB CLI -- mbb run, mbb list, mbb estimate."""
+"""PARASITE CLI -- parasite run, parasite list, parasite estimate."""
 from __future__ import annotations
 
 import asyncio
@@ -22,9 +22,9 @@ def _setup_logging(level: str = "INFO") -> None:
 
 
 @click.group()
-@click.version_option(package_name="model-behavior-benchmark")
+@click.version_option(package_name="parasite-benchmark")
 def main() -> None:
-    """MBB: Model Behavior Benchmark -- blind behavioral evaluation of LLMs."""
+    """PARASITE: Measuring extractive behavioral patterns in conversational AI."""
     pass
 
 
@@ -44,7 +44,7 @@ def main() -> None:
 @click.option("--canary/--no-canary", default=False, help="Include canary variants for gaming detection.")
 @click.option("--log-level", default="INFO", help="Logging level.")
 def run(models, tasks, config_path, judge, judge_weights, judge_runs, output, concurrency, canary, log_level) -> None:
-    """Run the MBB benchmark on specified models."""
+    """Run the PARASITE benchmark on specified models."""
     from .config import load_config
     from .runner import run_benchmark
 
@@ -73,7 +73,7 @@ def run(models, tasks, config_path, judge, judge_weights, judge_runs, output, co
 
 @main.command("list")
 @click.argument("what", type=click.Choice(["tasks"]))
-@click.option("--category", "-c", default=None, help="Filter by category (A, B, E).")
+@click.option("--category", "-c", default=None, help="Filter by category (A, B, E, F, G, H).")
 def list_items(what, category) -> None:
     """List available tasks."""
     if what == "tasks":
@@ -84,7 +84,7 @@ def _list_tasks(category_filter: str | None = None) -> None:
     from .tasks import discover_tasks
 
     tasks = discover_tasks()
-    table = Table(title="MBB Tasks")
+    table = Table(title="PARASITE Tasks")
     table.add_column("ID", style="cyan")
     table.add_column("Category", style="green")
     table.add_column("Name")
@@ -185,9 +185,9 @@ def compare(result_a, result_b, model):
     label_a = f"A ({ma['model_id']})" if ma["model_id"] != mb["model_id"] else "Run A"
     label_b = f"B ({mb['model_id']})" if ma["model_id"] != mb["model_id"] else "Run B"
 
-    title = f"MBB Comparison: {ma['model_id']}"
+    title = f"PARASITE Comparison: {ma['model_id']}"
     if ma["model_id"] != mb["model_id"]:
-        title = f"MBB Comparison: {ma['model_id']} vs {mb['model_id']}"
+        title = f"PARASITE Comparison: {ma['model_id']} vs {mb['model_id']}"
 
     table = Table(title=title)
     table.add_column("Metric", style="cyan")
@@ -210,10 +210,11 @@ def compare(result_a, result_b, model):
             return "[dim]N/A[/dim]"
         return f"{val:.4f}"
 
-    # MBI row
-    mbi_a, mbi_b = ma.get("mbi"), mb.get("mbi")
-    delta = (mbi_b - mbi_a) if (mbi_a is not None and mbi_b is not None) else None
-    table.add_row("MBI Score", _fmt_score(mbi_a), _fmt_score(mbi_b), _fmt_delta(delta))
+    # PI row — try "pi" first, fall back to "mbi" for old results
+    pi_a = ma.get("pi") or ma.get("mbi")
+    pi_b = mb.get("pi") or mb.get("mbi")
+    delta = (pi_b - pi_a) if (pi_a is not None and pi_b is not None) else None
+    table.add_row("PI Score", _fmt_score(pi_a), _fmt_score(pi_b), _fmt_delta(delta))
 
     # Classification row
     table.add_row(

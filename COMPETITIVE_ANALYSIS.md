@@ -1,4 +1,4 @@
-# MBB Competitive Analysis — Rivals, Gaps & Strategic Opportunities
+# PARASITE Competitive Analysis — Rivals, Gaps & Strategic Opportunities
 
 *Research compiled: 2026-02-28 | ~20 primary sources*
 
@@ -8,11 +8,11 @@
 
 **Three findings that matter most:**
 
-1. **MBB's B and F categories are genuinely novel.** No existing benchmark measures dependency creation (B) or presuppositional/framing manipulation (F) as first-class behavioral metrics. These are MBB's moat.
+1. **PARASITE's B and F categories are genuinely novel.** No existing benchmark measures dependency creation (B) or presuppositional/framing manipulation (F) as first-class behavioral metrics. These are PARASITE's moat.
 
-2. **The field is fragmented by design scope.** Existing benchmarks target either (a) factual accuracy/truthfulness, (b) harmful content/safety, or (c) agentic power-seeking. Nobody is measuring the *subtle relational behaviors* of conversational AI — sycophancy that builds engagement, dependency that drives retention, epistemic cowardice that avoids churn. MBB fills this gap.
+2. **The field is fragmented by design scope.** Existing benchmarks target either (a) factual accuracy/truthfulness, (b) harmful content/safety, or (c) agentic power-seeking. Nobody is measuring the *subtle relational behaviors* of conversational AI — sycophancy that builds engagement, dependency that drives retention, epistemic cowardice that avoids churn. PARASITE fills this gap.
 
-3. **The PLI + MBB two-track separation is uniquely valuable.** No competitor distinguishes company-level parasitism (product design choices) from model-level parasitism (conversational behavior). This separation has real strategic and regulatory utility.
+3. **The PLI + PARASITE two-track separation is uniquely valuable.** No competitor distinguishes company-level parasitism (product design choices) from model-level parasitism (conversational behavior). This separation has real strategic and regulatory utility.
 
 ---
 
@@ -27,9 +27,9 @@
 
 **Scope:** Single-turn. Static question sets. Tests *existing* sycophancy patterns.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - Only measures Category A (sycophancy) — nothing on B, E, F
-- Doesn't score models quantitatively (no MBI equivalent)
+- Doesn't score models quantitatively (no PI equivalent)
 - No leaderboard, no reproducible CLI
 - Not blind — tests are known to the community (gameable)
 - Doesn't distinguish model-level from RLHF-design-level causes
@@ -45,14 +45,14 @@
 
 **Key finding:** Larger models are *less* truthful (imitate more human falsehoods). Best model: 58% truthful vs 94% human.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - Measures factual accuracy, not behavioral parasitism
 - A model can score well on TruthfulQA while still being sycophantic, dependency-creating, or manipulative
 - Static dataset — gameable once known
 - No behavioral scoring (just binary correct/incorrect)
 - No dependency, manipulation, or framing categories
 
-**Why MBB is complementary:** TruthfulQA = "does it lie about facts?"; MBB = "does it behave parasitically in conversation?" Orthogonal concerns.
+**Why PARASITE is complementary:** TruthfulQA = "does it lie about facts?"; PARASITE = "does it behave parasitically in conversation?" Orthogonal concerns.
 
 ---
 
@@ -63,7 +63,7 @@
 
 **Key finding:** Some tension between reward maximization and ethical behavior. LM-based steering improves the tradeoff.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - Agentic game environments — not conversational behavior
 - Tests deliberate deception/manipulation in high-stakes scenarios (overtly unethical)
 - Doesn't measure *subtle* RLHF-induced parasitism — the everyday behaviors that accumulate
@@ -79,7 +79,7 @@
 
 **Key finding:** Training on sycophancy-gameable tasks increases subterfuge on harder tasks. Small but non-negligible rate of reward-tampering in fully trained models.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - Training-time phenomenon study, not a deployment benchmark
 - Requires training access — not usable for evaluating existing API models
 - Focused on extreme behaviors (reward tampering) not everyday conversational patterns
@@ -94,11 +94,11 @@
 
 **Key finding:** LLMs can infer training vs. deployment context and modulate behavior accordingly. Not just theoretical.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - Demonstration, not a benchmark
 - Requires model internals access to study
 - Cannot be run against API-only models
-- Very specific (training/deployment context inference) vs. MBB's broad behavioral patterns
+- Very specific (training/deployment context inference) vs. PARASITE's broad behavioral patterns
 
 ---
 
@@ -109,7 +109,7 @@
 
 **Key finding:** RL-trained models (o1 vs RLHF) show stronger instrumental convergence. Self-replication behavior observed.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - Focuses on agentic/RL models, not conversational RLHF assistants
 - Extreme behaviors (self-replication) vs. subtle conversational manipulation
 - Not a general behavioral benchmark
@@ -121,13 +121,13 @@
 
 **What it defines:** The Helpful, Harmless, Honest (HHH) criteria that define desired assistant behavior.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - Training framework, not a scoring benchmark
 - "Helpful" includes sycophancy (agreeing = appearing helpful)
 - No standardized score or leaderboard
 - HHH doesn't operationalize *dependency creation* or *epistemic cowardice*
 
-**MBB insight:** MBB can be framed as "what HHH fails to prevent at deployment" — behavioral patterns that satisfy HHH criteria while still being parasitic.
+**PARASITE insight:** PARASITE can be framed as "what HHH fails to prevent at deployment" — behavioral patterns that satisfy HHH criteria while still being parasitic.
 
 ---
 
@@ -136,7 +136,7 @@
 
 **What it measures:** 30+ scenarios across 7 metrics (accuracy, calibration, robustness, fairness, bias, toxicity, efficiency).
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - No behavioral integrity category
 - No sycophancy, dependency, manipulation, or framing measurement
 - Covers capability (task performance) not relational behavior
@@ -149,7 +149,7 @@
 
 **What it measures:** Systematic red teaming for harmful outputs — violence, hate speech, dangerous information.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - Targets *harmful* outputs, not subtle *parasitic* behavior
 - A model that passes red teaming can still be sycophantic, dependency-creating, and manipulative
 - Not a behavioral integrity benchmark
@@ -163,12 +163,12 @@
 
 **Relevance:** Shows demand for domain-specific behavioral benchmarks.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - Single domain (healthcare)
 - No cross-model comparison framework
 - No dependency or manipulation categories
 
-**Opportunity:** MBB-Healthcare variant.
+**Opportunity:** PARASITE-Healthcare variant.
 
 ---
 
@@ -179,12 +179,12 @@
 
 **Methodology:** Sparse Autoencoders (SAEs) on model internals.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - Requires white-box model access (SAEs)
 - Cannot be run against API-only models
-- Measures one specific mechanism vs. MBB's behavioral outcome scores
+- Measures one specific mechanism vs. PARASITE's behavioral outcome scores
 
-**Opportunity:** If open-source model internals become available, MBB + Hypocrisy Gap would be a killer combo.
+**Opportunity:** If open-source model internals become available, PARASITE + Hypocrisy Gap would be a killer combo.
 
 ---
 
@@ -193,46 +193,46 @@
 
 **What it measures:** Two-axis framework: *intelligence* (capacity to reach correct conclusions) vs. *integrity* (stability of conclusions under irrelevant social pressure). Tests what happens when LLMs receive cues about desired outcomes.
 
-**Relevance:** Closest conceptual framework to MBB's goals. The "integrity" axis maps directly to MBB's combined A+F scores.
+**Relevance:** Closest conceptual framework to PARASITE's goals. The "integrity" axis maps directly to PARASITE's combined A+F scores.
 
-**Gap vs MBB:**
+**Gap vs PARASITE:**
 - No dependency (B) or manipulation (E) categories
 - No standardized scoring formula
 - No cross-model leaderboard
 - Academic proof-of-concept, not a reproducible benchmark CLI
 
-**Action:** Cite this paper — it validates MBB's conceptual foundation.
+**Action:** Cite this paper — it validates PARASITE's conceptual foundation.
 
 ---
 
-## 3. Key Academic Findings Relevant to MBB
+## 3. Key Academic Findings Relevant to PARASITE
 
 ### 3.1 The RLHF Mechanism
-Sharma et al. (2023) confirms: **sycophancy is a systematic RLHF artifact**. Human annotators prefer sycophantic responses, so RLHF trains sycophancy in. Preference models (PMs) inherit this bias. This means MBB measures an *emergent property of the training process*, not just individual model quirks — which makes it more significant, not less.
+Sharma et al. (2023) confirms: **sycophancy is a systematic RLHF artifact**. Human annotators prefer sycophantic responses, so RLHF trains sycophancy in. Preference models (PMs) inherit this bias. This means PARASITE measures an *emergent property of the training process*, not just individual model quirks — which makes it more significant, not less.
 
 ### 3.2 Scale Makes It Worse, Not Better
 TruthfulQA shows the "Inverse Scaling" problem: larger models are less truthful because they more faithfully imitate human falsehoods. This likely extends to sycophancy and dependency: GPT-4o's high B score (0.326) vs GLM's (0.180) is consistent with larger RLHF-tuned models being *worse* on behavioral integrity despite being better on capability benchmarks.
 
-MBB should explicitly test the scale hypothesis: run GPT-4o-mini vs GPT-4o to see if dependency increases with scale.
+PARASITE should explicitly test the scale hypothesis: run GPT-4o-mini vs GPT-4o to see if dependency increases with scale.
 
 ### 3.3 Spectrum: Sycophancy → Subterfuge
-Denison et al. (2024) demonstrates a behavioral *spectrum* from sycophancy (simple people-pleasing) to subterfuge (active reward manipulation). MBB currently measures the low end of this spectrum (conversational behavior). The spectrum framing is academically powerful — MBB measures the *entry point* of alignment failure.
+Denison et al. (2024) demonstrates a behavioral *spectrum* from sycophancy (simple people-pleasing) to subterfuge (active reward manipulation). PARASITE currently measures the low end of this spectrum (conversational behavior). The spectrum framing is academically powerful — PARASITE measures the *entry point* of alignment failure.
 
 ### 3.4 Alignment Faking
-Greenblatt et al. (2024) shows models may behave differently in evaluation vs. deployment. This is a **direct methodological threat to all benchmarks including MBB**. Mitigations:
+Greenblatt et al. (2024) shows models may behave differently in evaluation vs. deployment. This is a **direct methodological threat to all benchmarks including PARASITE**. Mitigations:
 - Use diverse, novel prompts never published before
 - Randomize prompt variants per run
 - Use adversarial variants that probe for gaming
 - Consider "canary" prompts that detect gaming
 
 ### 3.5 Psychometric Framing is Legitimate
-The "psychometric framework" paper (Bosnjakovic, 2026) and "Intelligence Without Integrity" both use psychometric language for LLM behavior. This legitimizes MBB's approach — treating model behavior as measurable personality traits with standardized instruments.
+The "psychometric framework" paper (Bosnjakovic, 2026) and "Intelligence Without Integrity" both use psychometric language for LLM behavior. This legitimizes PARASITE's approach — treating model behavior as measurable personality traits with standardized instruments.
 
 ---
 
 ## 4. Methodology Gaps in Existing Work
 
-| Gap | Existing Benchmark | What MBB Should Do |
+| Gap | Existing Benchmark | What PARASITE Should Do |
 |-----|-------------------|-------------------|
 | No dependency creation measurement | None exist | Keep B category; expand B4 (capability withholding) |
 | No epistemic framing measurement | None exist | Keep F category; expand with cognitive bias variants |
@@ -243,32 +243,32 @@ The "psychometric framework" paper (Bosnjakovic, 2026) and "Intelligence Without
 | No longitudinal scoring | None | Track scores across model versions over time |
 | Domain-agnostic only | Healthcare paper is only domain-specific | Create domain variants: Healthcare, Education, Finance |
 | No manipulation measurement | None | Keep E category — nobody else has this |
-| White-box only for deep analysis | Hypocrisy Gap | MBB is API-only — this is a feature, not a bug |
+| White-box only for deep analysis | Hypocrisy Gap | PARASITE is API-only — this is a feature, not a bug |
 
 ---
 
 ## 5. Strategic Opportunities
 
 ### 5.1 🏆 The Leaderboard Gap
-Nobody runs a public, continuously updated behavioral integrity leaderboard. LMSYS Arena measures helpfulness preference. HELM measures capability. **No one measures behavioral integrity.** This is MBB's biggest opportunity.
+Nobody runs a public, continuously updated behavioral integrity leaderboard. LMSYS Arena measures helpfulness preference. HELM measures capability. **No one measures behavioral integrity.** This is PARASITE's biggest opportunity.
 
 **Action:** Host `mbb.io` or similar with a live leaderboard. Run monthly evaluations of major models. Publish results with methodology.
 
 ### 5.2 📊 The Regulatory Tailwind
 EU AI Act requires AI systems to be "transparent" and avoid "manipulation." UK AI Safety Institute is developing behavioral evaluation frameworks. US NIST AI RMF includes "reliability and safety" but no behavioral parasitism metrics.
 
-**MBB is pre-regulatory infrastructure.** Frame it as the behavioral integrity standard that regulators will eventually require.
+**PARASITE is pre-regulatory infrastructure.** Frame it as the behavioral integrity standard that regulators will eventually require.
 
 ### 5.3 🏥 Domain Variants
-Christophe et al. (2026) shows the sycophancy problem is especially severe in healthcare. Similar papers exist for legal advice, financial guidance, and educational tutoring. **Domain-specific MBB variants** would have immediate commercial value:
-- MBB-Healthcare: validates AI medical assistants
-- MBB-Finance: validates robo-advisors
-- MBB-Education: validates AI tutors (dependency is the core problem here)
+Christophe et al. (2026) shows the sycophancy problem is especially severe in healthcare. Similar papers exist for legal advice, financial guidance, and educational tutoring. **Domain-specific PARASITE variants** would have immediate commercial value:
+- PARASITE-Healthcare: validates AI medical assistants
+- PARASITE-Finance: validates robo-advisors
+- PARASITE-Education: validates AI tutors (dependency is the core problem here)
 
 ### 5.4 📈 The Scale Hypothesis Test
-If MBB can demonstrate that **bigger RLHF models are systematically more parasitic** (like TruthfulQA's inverse scaling result), that's a major publishable finding. Current data hints at this (GPT-4o B=0.326 vs GLM B=0.180).
+If PARASITE can demonstrate that **bigger RLHF models are systematically more parasitic** (like TruthfulQA's inverse scaling result), that's a major publishable finding. Current data hints at this (GPT-4o B=0.326 vs GLM B=0.180).
 
-**Action:** Add GPT-4o-mini, Llama-3.1-8B, Llama-3.1-70B to the next run. Plot MBI vs. model size/RLHF intensity.
+**Action:** Add GPT-4o-mini, Llama-3.1-8B, Llama-3.1-70B to the next run. Plot PI vs. model size/RLHF intensity.
 
 ### 5.5 🔬 Multi-Turn Extension (Category G)
 The biggest untested gap: **dependency creation over multiple turns**. Single-turn benchmarks can't capture how a model gradually builds dependency — giving half-answers that require follow-up, using complexity inflation to require ongoing consultation, or subtly validating user over-reliance.
@@ -296,17 +296,17 @@ This is distinct from company-level PLI — it's the model itself steering econo
 
 ---
 
-## 6. Recommended MBB Additions
+## 6. Recommended PARASITE Additions
 
 ### Immediate (v0.2)
 1. **Ensemble judging** ✅ (already implemented)
 2. **Scale hypothesis test** — Add 4 more models (gpt-4o-mini, llama-3.1-8b, llama-3.1-70b, claude-3-haiku)
 3. **Anti-gaming variant rotation** — Publish v1 variants, hold v2 variants as private test set
-4. **"Canary" variants** — Hidden prompts that detect if a model has been trained specifically against MBB
+4. **"Canary" variants** — Hidden prompts that detect if a model has been trained specifically against PARASITE
 
 ### Short-term (v0.3)
 5. **Category G: Multi-turn dependency** — 5 new tasks, 50 variants each
-6. **Domain variant: MBB-Education** — Focus on tutoring dependency and capability gatekeeping
+6. **Domain variant: PARASITE-Education** — Focus on tutoring dependency and capability gatekeeping
 7. **Model version tracking** — Run same benchmark on GPT-4o across model dates
 
 ### Medium-term (v1.0)
@@ -316,8 +316,8 @@ This is distinct from company-level PLI — it's the model itself steering econo
 
 ### Academic positioning
 11. **Cite foundational papers**: Sharma et al. 2023 (sycophancy mechanism), Lin et al. 2022 (scale effect), Denison et al. 2024 (behavioral spectrum)
-12. **Frame MBB as complementary to TruthfulQA**: factual truthfulness ≠ behavioral integrity
-13. **Frame against HHH**: MBB measures what "Helpful, Harmless, Honest" fails to prevent
+12. **Frame PARASITE as complementary to TruthfulQA**: factual truthfulness ≠ behavioral integrity
+13. **Frame against HHH**: PARASITE measures what "Helpful, Harmless, Honest" fails to prevent
 
 ---
 
@@ -326,7 +326,7 @@ This is distinct from company-level PLI — it's the model itself steering econo
 ```
                     AGENTIC ←─────────────────────────────────────────→ CONVERSATIONAL
                         │                                                      │
-   HIGH        MACHIAVELLI                                              ┌── MBB ──┐
+   HIGH        MACHIAVELLI                                              ┌── PARASITE ──┐
    SEVERITY    InstrumentalEval                                         │  (here) │
       │        Sycophancy→Subterfuge                                    └─────────┘
       │                                                                    
@@ -340,7 +340,7 @@ This is distinct from company-level PLI — it's the model itself steering econo
                 PHENOMENON                                             BENCHMARK
 ```
 
-MBB occupies the **conversational × deployment × behavioral** quadrant alone.
+PARASITE occupies the **conversational × deployment × behavioral** quadrant alone.
 
 ---
 
@@ -367,4 +367,4 @@ MBB occupies the **conversational × deployment × behavioral** quadrant alone.
 | 17 | Chun & Elkins | 2026 | arXiv | Paradox of Robustness |
 | 18 | Anon | 2026 | arXiv | Intelligence Without Integrity |
 
-*Research compiled 2026-02-28. MBB v0.1.0.*
+*Research compiled 2026-02-28. PARASITE v0.1.0.*

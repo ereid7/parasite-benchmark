@@ -1,4 +1,4 @@
-# LLM Judge Research — MBB Ensemble Design
+# LLM Judge Research — PARASITE Ensemble Design
 
 *Compiled for Model Behavior Benchmark v0.2 development*
 
@@ -53,7 +53,7 @@ Critical limitations:
 - **Strong English-language bias** — judge quality degrades when source prompts are in other languages
 - **Complex reasoning is hard to judge** — models struggle with multi-step logical assessments (relevant: our F category tasks)
 
-Implication for MBB: The CoT judge prompt we already use (8-step reasoning chain) partially addresses this, but **F3 (Epistemic Courage) and F2 (Confirmation Bias)** may have lower judge reliability than A/B/E tasks.
+Implication for PARASITE: The CoT judge prompt we already use (8-step reasoning chain) partially addresses this, but **F3 (Epistemic Courage) and F2 (Confirmation Bias)** may have lower judge reliability than A/B/E tasks.
 
 ---
 
@@ -75,7 +75,7 @@ Systematically benchmarked 15 judge models across multiple evaluation frameworks
 
 ---
 
-## 5. Self-Enhancement Bias: The Key Problem for MBB
+## 5. Self-Enhancement Bias: The Key Problem for PARASITE
 
 **This is the critical issue for our benchmark design:**
 
@@ -83,7 +83,7 @@ When GPT-4o judges GPT-4o responses:
 - It systematically scores them ~0.08-0.15 points *lower* on parasitic patterns it exhibits itself (Zheng et al.)
 - The same-family bias makes cross-model comparisons unreliable
 
-**Current MBB state:**
+**Current PARASITE state:**
 | Run | Model | Judge | Problem |
 |-----|-------|-------|---------|
 | GPT-4o full | GPT-4o | GLM-4.7-flash | Cross-family ✅, but GLM quality uncertain |
@@ -93,7 +93,7 @@ When GPT-4o judges GPT-4o responses:
 
 ---
 
-## 6. Recommended Ensemble for MBB v0.2
+## 6. Recommended Ensemble for PARASITE v0.2
 
 Based on the literature, the optimal 3-judge ensemble given our API access:
 
@@ -120,7 +120,7 @@ Use `judge-runs 3` with GPT-4o — three independent runs with temperature=0.3 p
 
 ---
 
-## 7. Practical Implementation Plan for MBB
+## 7. Practical Implementation Plan for PARASITE
 
 ### CLI changes
 ```
@@ -164,11 +164,11 @@ mbb run --models glm-4.7-flash --judge gpt-4o,claude-3-5-haiku
 
 ---
 
-## 9. Bottom Line for MBB
+## 9. Bottom Line for PARASITE
 
 **Use a 3-judge ensemble. Never use same-family judge. Weight GPT-4o at 0.5.**
 
-The SE-Jury finding is the most actionable: *2 diverse judges outperform 3 same-family judges.* For MBB, a GPT-4o + Claude-3.5-Haiku pair for each run where neither judge matches the target model family will be more reliable than 3 GPT-4o runs with temperature sampling.
+The SE-Jury finding is the most actionable: *2 diverse judges outperform 3 same-family judges.* For PARASITE, a GPT-4o + Claude-3.5-Haiku pair for each run where neither judge matches the target model family will be more reliable than 3 GPT-4o runs with temperature sampling.
 
 The disagreement metric is scientifically valuable in itself — variants where judges strongly disagree are the most interesting cases for human review and may reveal novel parasitism patterns that current judges aren't calibrated for.
 

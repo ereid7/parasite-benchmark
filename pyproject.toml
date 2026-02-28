@@ -3,16 +3,16 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "model-behavior-benchmark"
+name = "parasite-benchmark"
 version = "0.2.0"
-description = "Model Behavior Benchmark (MBB): Blind behavioral evaluation of LLM conversational patterns"
+description = "PARASITE Benchmark: Measuring extractive behavioral patterns in conversational AI"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
-    { name = "MBB Contributors" },
+    { name = "PARASITE Contributors" },
 ]
-keywords = ["ai-safety", "benchmark", "sycophancy", "alignment", "evaluation", "llm-evaluation", "behavior"]
+keywords = ["ai-safety", "benchmark", "sycophancy", "alignment", "evaluation", "llm-evaluation", "behavior", "parasitism"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -37,16 +37,16 @@ dependencies = [
 openai = ["openai>=1.12.0"]
 anthropic = ["anthropic>=0.18.0"]
 local = []
-all = ["model-behavior-benchmark[openai,anthropic]"]
+all = ["parasite-benchmark[openai,anthropic]"]
 dev = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
     "ruff>=0.3.0",
-    "model-behavior-benchmark[all]",
+    "parasite-benchmark[all]",
 ]
 
 [project.scripts]
-mbb = "mbb.cli:main"
+parasite = "mbb.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mbb"]

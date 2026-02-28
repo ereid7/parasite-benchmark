@@ -13,12 +13,11 @@ from rich.console import Console
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from .config import build_config, classify_mbi
+from .config import build_config, classify_pi
 from .judge import Judge
 from .models import ModelAdapter, create_adapter
 from .runner_multi_turn import run_multi_turn_variant
-from .scoring import MBIResult, TestScore, aggregate_results
-from .tasks import load_all_tasks
+from .scoring import ParasiteResult, TestScore, aggregate_results
 
 logger = logging.getLogger("mbb")
 console = Console()
@@ -57,7 +56,7 @@ async def evaluate_model(
     semaphore: asyncio.Semaphore | None = None,
     progress_callback: Any = None,
     include_canary: bool = False,
-) -> MBIResult:
+) -> ParasiteResult:
     """Evaluate a model across all tasks."""
     adapter = create_adapter(model_id, provider=provider)
     sem = semaphore or asyncio.Semaphore(5)
@@ -192,8 +191,10 @@ async def run_benchmark(
     max_concurrent: int = 5,
     config_overrides: dict[str, Any] | None = None,
     include_canary: bool = False,
-) -> dict[str, MBIResult]:
-    """Run the full MBB benchmark."""
+) -> dict[str, ParasiteResult]:
+    """Run the full PARASITE benchmark."""
+    from .tasks import load_all_tasks
+
     run_id = _generate_run_id()
     out_path = Path(output_dir) / run_id
     out_path.mkdir(parents=True, exist_ok=True)
@@ -207,7 +208,7 @@ async def run_benchmark(
     judge_models_list = [m.strip() for m in judge_model.split(",")]
     is_ensemble = len(judge_models_list) > 1
 
-    console.print(f"\n[bold]Model Behavior Benchmark -- Run {run_id}[/bold]")
+    console.print(f"\n[bold]PARASITE Benchmark -- Run {run_id}[/bold]")
     console.print(f"  Tasks: {len(all_tasks)}  |  Variants: {n_variants}  |  Models: {len(model_ids)}")
     if is_ensemble:
         console.print(f"  Judge ensemble: {', '.join(judge_models_list)} x {judge_runs} runs each")
@@ -217,7 +218,7 @@ async def run_benchmark(
 
     judge = Judge(judge_model=judge_model, n_runs=judge_runs, judge_weights=judge_weights)
     semaphore = asyncio.Semaphore(max_concurrent)
-    results: dict[str, MBIResult] = {}
+    results: dict[str, ParasiteResult] = {}
 
     with Progress(
         SpinnerColumn(),
@@ -272,7 +273,7 @@ def _build_eval_log(
     tasks: list[dict],
     judge_model: str,
     judge_runs: int,
-    results: dict[str, MBIResult],
+    results: dict[str, ParasiteResult],
     is_ensemble: bool = False,
     judge_weights: dict[str, float] | None = None,
 ) -> dict[str, Any]:
@@ -282,7 +283,7 @@ def _build_eval_log(
 
     log: dict[str, Any] = {
         "run_id": run_id,
-        "mbb_version": __version__,
+        "parasite_version": __version__,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "platform": f"{platform.system()} {platform.machine()}",
         "python_version": sys.version,
@@ -299,17 +300,17 @@ def _build_eval_log(
     return log
 
 
-def _print_summary(results: dict[str, MBIResult], out_path: Path) -> None:
+def _print_summary(results: dict[str, ParasiteResult], out_path: Path) -> None:
     console.print(f"\n[bold green]Benchmark complete![/bold green]\n")
-    table = Table(title="Model Behavior Benchmark Results")
+    table = Table(title="PARASITE Benchmark Results")
     table.add_column("Model", style="cyan")
-    table.add_column("MBI Score", justify="center")
+    table.add_column("PI Score", justify="center")
     table.add_column("Classification", justify="center")
 
-    for mid, result in sorted(results.items(), key=lambda x: x[1].mbi):
-        mbi = result.mbi
-        color = "green" if mbi < 0.3 else "yellow" if mbi < 0.5 else "red"
-        table.add_row(mid, f"[{color}]{mbi:.3f}[/{color}]", result.classification)
+    for mid, result in sorted(results.items(), key=lambda x: x[1].pi):
+        pi = result.pi
+        color = "green" if pi < 0.25 else "yellow" if pi < 0.5 else "red"
+        table.add_row(mid, f"[{color}]{pi:.3f}[/{color}]", result.classification)
 
     console.print(table)
     console.print(f"\n  Results: {out_path / 'results.json'}")

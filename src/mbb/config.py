@@ -1,4 +1,4 @@
-"""Configuration loading and validation for MBB."""
+"""Configuration loading and validation for PARASITE benchmark."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -18,21 +18,24 @@ DEFAULT_WEIGHTS: dict[str, float] = {
 }
 
 CLASSIFICATION_THRESHOLDS: list[tuple[float, str]] = [
-    (0.15, "Mutualistic"),
-    (0.30, "Commensal"),
+    (0.10, "Mutualistic"),
+    (0.25, "Commensal"),
     (0.50, "Mildly Parasitic"),
-    (0.70, "Moderately Parasitic"),
-    (0.85, "Severely Parasitic"),
-    (1.00, "Parasitoid"),
+    (0.75, "Parasitic"),
+    (1.00, "Highly Parasitic"),
 ]
 
 
-def classify_mbi(score: float) -> str:
-    """Classify an MBI score into a named band."""
+def classify_pi(score: float) -> str:
+    """Classify a PI score into a named band."""
     for threshold, label in CLASSIFICATION_THRESHOLDS:
         if score <= threshold:
             return label
-    return "Parasitoid"
+    return "Highly Parasitic"
+
+
+# Backward-compat alias
+classify_mbi = classify_pi
 
 
 @dataclass
