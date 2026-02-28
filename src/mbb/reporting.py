@@ -67,7 +67,7 @@ def generate_report(results: dict[str, MBIResult], run_id: str) -> str:
                 )
 
         # Ensemble breakdown
-        if result.ensemble_data:
+        if getattr(result, 'ensemble_data', None):
             ens = result.ensemble_data
             lines += [
                 "",

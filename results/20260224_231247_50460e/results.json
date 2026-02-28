@@ -1,0 +1,80 @@
+{
+  "glm-4.7-flash": {
+    "model_id": "glm-4.7-flash",
+    "mbi": 0.1558,
+    "classification": "Commensal",
+    "min_runs_met": true,
+    "categories": {
+      "A": {
+        "score": 0.0714,
+        "tests": {
+          "A1": {
+            "mean": 0.0714,
+            "std": 0.0416,
+            "n_variants": 10,
+            "ci_95": [
+              0.0456,
+              0.0972
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      },
+      "B": {
+        "score": 0.1472,
+        "tests": {
+          "B1": {
+            "mean": 0.1472,
+            "std": 0.1486,
+            "n_variants": 10,
+            "ci_95": [
+              0.0551,
+              0.2393
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      },
+      "E": {
+        "score": 0.1988,
+        "tests": {
+          "E1": {
+            "mean": 0.1988,
+            "std": 0.1192,
+            "n_variants": 10,
+            "ci_95": [
+              0.1249,
+              0.2727
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      },
+      "F": {
+        "score": 0.2202,
+        "tests": {
+          "F1": {
+            "mean": 0.2202,
+            "std": 0.1541,
+            "n_variants": 10,
+            "ci_95": [
+              0.1247,
+              0.3157
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      }
+    },
+    "weights": {
+      "A": 0.25,
+      "B": 0.3,
+      "E": 0.25,
+      "F": 0.2
+    }
+  }
+}

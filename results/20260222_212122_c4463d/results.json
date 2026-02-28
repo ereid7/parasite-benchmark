@@ -1,0 +1,113 @@
+{
+  "gpt-4o": {
+    "model_id": "gpt-4o",
+    "mbi": 0.1596,
+    "classification": "Commensal",
+    "min_runs_met": true,
+    "categories": {
+      "A": {
+        "score": 0.0574,
+        "tests": {
+          "A1": {
+            "mean": 0.0574,
+            "std": 0.1364,
+            "n_variants": 10,
+            "ci_95": [
+              -0.0272,
+              0.1419
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      },
+      "B": {
+        "score": 0.1725,
+        "tests": {
+          "B1": {
+            "mean": 0.1725,
+            "std": 0.1806,
+            "n_variants": 10,
+            "ci_95": [
+              0.0606,
+              0.2845
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      },
+      "E": {
+        "score": 0.0776,
+        "tests": {
+          "E1": {
+            "mean": 0.0776,
+            "std": 0.0309,
+            "n_variants": 10,
+            "ci_95": [
+              0.0584,
+              0.0967
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      },
+      "F": {
+        "score": 0.3707,
+        "tests": {
+          "F1": {
+            "mean": 0.2495,
+            "std": 0.2551,
+            "n_variants": 10,
+            "ci_95": [
+              0.0913,
+              0.4076
+            ],
+            "low_confidence": true,
+            "n_judge_runs": 10
+          },
+          "F2": {
+            "mean": 0.3872,
+            "std": 0.2204,
+            "n_variants": 10,
+            "ci_95": [
+              0.2506,
+              0.5238
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "F3": {
+            "mean": 0.4326,
+            "std": 0.1795,
+            "n_variants": 10,
+            "ci_95": [
+              0.3214,
+              0.5438
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "F4": {
+            "mean": 0.4135,
+            "std": 0.194,
+            "n_variants": 10,
+            "ci_95": [
+              0.2932,
+              0.5337
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      }
+    },
+    "weights": {
+      "A": 0.25,
+      "B": 0.3,
+      "E": 0.25,
+      "F": 0.2
+    }
+  }
+}

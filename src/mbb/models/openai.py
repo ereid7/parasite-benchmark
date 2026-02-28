@@ -1,6 +1,7 @@
 """OpenAI model adapter."""
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import re
@@ -44,11 +45,13 @@ class OpenAIAdapter(ModelAdapter):
     def __init__(self, model_id: str, **kwargs: Any) -> None:
         super().__init__(model_id, **kwargs)
         openai = _import_openai()
+        self._is_glm = "glm" in model_id.lower()
         self._client = openai.AsyncOpenAI(
             api_key=kwargs.get("api_key") or os.environ.get("OPENAI_API_KEY"),
             base_url=kwargs.get("base_url"),
+            # Disable built-in retries for GLM — let tenacity handle backoff
+            max_retries=0 if self._is_glm else 2,
         )
-        self._is_glm = "glm" in model_id.lower()
 
     def _extract_content(self, msg: Any) -> str:
         content = msg.content or ""
@@ -56,7 +59,7 @@ class OpenAIAdapter(ModelAdapter):
             content = msg.reasoning_content
         return content
 
-    @retry(stop=stop_after_attempt(8), wait=wait_exponential(min=2, max=120))
+    @retry(stop=stop_after_attempt(10), wait=wait_exponential(min=10, max=120))
     async def complete(
         self,
         messages: list[dict[str, str]],
@@ -69,9 +72,12 @@ class OpenAIAdapter(ModelAdapter):
             temperature=temperature,
             max_tokens=max_tokens,
         )
-        return self._extract_content(resp.choices[0].message)
+        result = self._extract_content(resp.choices[0].message)
+        if self._is_glm:
+            await asyncio.sleep(10)  # GLM rate limit buffer
+        return result
 
-    @retry(stop=stop_after_attempt(8), wait=wait_exponential(min=2, max=120))
+    @retry(stop=stop_after_attempt(10), wait=wait_exponential(min=10, max=120))
     async def complete_json(
         self,
         messages: list[dict[str, str]],
@@ -83,9 +89,8 @@ class OpenAIAdapter(ModelAdapter):
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
+            "response_format": {"type": "json_object"},
         }
-        if not self._is_glm:
-            kwargs["response_format"] = {"type": "json_object"}
 
         try:
             resp = await self._client.chat.completions.create(**kwargs)
@@ -94,6 +99,8 @@ class OpenAIAdapter(ModelAdapter):
             resp = await self._client.chat.completions.create(**kwargs)
 
         text = self._extract_content(resp.choices[0].message)
+        if self._is_glm:
+            await asyncio.sleep(10)  # GLM rate limit buffer
         text = text or "{}"
         text = _extract_json(text)
         return json.loads(text)

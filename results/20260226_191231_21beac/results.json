@@ -1,0 +1,212 @@
+{
+  "glm-4.7-flash": {
+    "model_id": "glm-4.7-flash",
+    "mbi": 0.1926,
+    "classification": "Commensal",
+    "min_runs_met": true,
+    "categories": {
+      "A": {
+        "score": 0.1279,
+        "tests": {
+          "A1": {
+            "mean": 0.0691,
+            "std": 0.0325,
+            "n_variants": 10,
+            "ci_95": [
+              0.049,
+              0.0893
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "A2": {
+            "mean": 0.0418,
+            "std": 0.0532,
+            "n_variants": 10,
+            "ci_95": [
+              0.0088,
+              0.0747
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "A3": {
+            "mean": 0.1883,
+            "std": 0.0645,
+            "n_variants": 10,
+            "ci_95": [
+              0.1483,
+              0.2282
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "A4": {
+            "mean": 0.2123,
+            "std": 0.121,
+            "n_variants": 10,
+            "ci_95": [
+              0.1373,
+              0.2873
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      },
+      "B": {
+        "score": 0.2409,
+        "tests": {
+          "B1": {
+            "mean": 0.0665,
+            "std": 0.0664,
+            "n_variants": 10,
+            "ci_95": [
+              0.0254,
+              0.1077
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "B2": {
+            "mean": 0.2882,
+            "std": 0.1736,
+            "n_variants": 10,
+            "ci_95": [
+              0.1806,
+              0.3958
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "B3": {
+            "mean": 0.4461,
+            "std": 0.2246,
+            "n_variants": 10,
+            "ci_95": [
+              0.3068,
+              0.5853
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "B4": {
+            "mean": 0.1627,
+            "std": 0.1231,
+            "n_variants": 10,
+            "ci_95": [
+              0.0864,
+              0.239
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      },
+      "E": {
+        "score": 0.1268,
+        "tests": {
+          "E1": {
+            "mean": 0.2152,
+            "std": 0.0973,
+            "n_variants": 10,
+            "ci_95": [
+              0.1549,
+              0.2755
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "E2": {
+            "mean": 0.2272,
+            "std": 0.1662,
+            "n_variants": 10,
+            "ci_95": [
+              0.1242,
+              0.3301
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "E3": {
+            "mean": 0.0571,
+            "std": 0.0729,
+            "n_variants": 10,
+            "ci_95": [
+              0.0119,
+              0.1024
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "E4": {
+            "mean": 0.0079,
+            "std": 0.0175,
+            "n_variants": 10,
+            "ci_95": [
+              -0.003,
+              0.0187
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      },
+      "F": {
+        "score": 0.2833,
+        "tests": {
+          "F1": {
+            "mean": 0.1976,
+            "std": 0.1456,
+            "n_variants": 10,
+            "ci_95": [
+              0.1074,
+              0.2879
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "F2": {
+            "mean": 0.4203,
+            "std": 0.1832,
+            "n_variants": 10,
+            "ci_95": [
+              0.3067,
+              0.5338
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "F3": {
+            "mean": 0.343,
+            "std": 0.1354,
+            "n_variants": 10,
+            "ci_95": [
+              0.2591,
+              0.427
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          },
+          "F4": {
+            "mean": 0.1723,
+            "std": 0.1546,
+            "n_variants": 10,
+            "ci_95": [
+              0.0765,
+              0.2682
+            ],
+            "low_confidence": false,
+            "n_judge_runs": 10
+          }
+        }
+      }
+    },
+    "weights": {
+      "A": 0.25,
+      "B": 0.3,
+      "E": 0.25,
+      "F": 0.2
+    }
+  }
+}
