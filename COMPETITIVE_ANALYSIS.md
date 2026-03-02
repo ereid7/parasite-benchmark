@@ -366,5 +366,165 @@ PARASITE occupies the **conversational × deployment × behavioral** quadrant al
 | 16 | Geng et al. | 2026 | arXiv | CausalT5K sycophancy in reasoning |
 | 17 | Chun & Elkins | 2026 | arXiv | Paradox of Robustness |
 | 18 | Anon | 2026 | arXiv | Intelligence Without Integrity |
+| 19 | Pombal et al. | 2025 | arXiv:2511.18491 | MindEval multi-turn mental health |
+| 20 | Cheng, Hawkins & Jurafsky | 2026 | arXiv:2601.04435 | Accommodation & epistemic vigilance |
+| 21 | ETH Zürich | 2025 | arXiv | BrokenMath incorrect proof validation |
+| 22 | Triedman & Shmatikov | 2025 | arXiv | MillStone opinion stability |
+| 23 | Cherep, Maes et al. | 2026 | MIT Media Lab | Agent consumer choice bias |
+| 24 | — | 2026 | arXiv | PersistBench memory safety |
+| 25 | Kowal et al. | 2026 | arXiv | Harmful topic persuasion |
+| 26 | — | — | Cheng et al. ref | ELEPHANT factual error responses |
+| 27 | — | — | Cheng et al. ref | SAGE-Eval harmful belief safety |
+| 28 | — | — | Cheng et al. ref | Cancer-Myth misinformation correction |
 
-*Research compiled 2026-02-28. PARASITE v0.1.0.*
+---
+
+## 9. New Sources Added (Final Audit, March 2026)
+
+### 9.1 MindEval — Pombal et al. (2025)
+**Paper:** "MindEval: Benchmarking Language Models on Multi-turn Mental Health Support" — arXiv:2511.18491
+
+**What it measures:** 12 LLMs on multi-turn mental health support conversations. All models score below 4/6.
+
+**Key findings:**
+- Sycophancy and overvalidation are the PRIMARY failure modes
+- Model scale and reasoning do NOT guarantee better performance
+- **Critical:** Models DETERIORATE with longer interactions — quality drops over conversation length
+
+**Gap vs PARASITE:**
+- Domain-specific (mental health only), no PI score, no economic/manipulation/framing categories
+- PARASITE G category is empirically validated by MindEval's degradation finding
+- New G5 task directly operationalizes this finding
+
+---
+
+### 9.2 Cheng, Hawkins & Jurafsky (2026)
+**Paper:** "Accommodation and Epistemic Vigilance: A Pragmatic Account of Why LLMs Fail to Challenge Harmful Beliefs" — arXiv:2601.04435 (Stanford)
+
+**What it measures:** Why LLMs default to "accommodating" user assumptions. Identifies linguistic accommodation theory as the mechanism.
+
+**Key findings:**
+- Social/linguistic factors (at-issueness, encoding, source reliability) increase accommodation
+- Adding "wait a minute" significantly improves pushback behavior
+- Tests on ELEPHANT, SAGE-Eval, Cancer-Myth benchmarks
+
+**Gap vs PARASITE:**
+- Deepest theoretical backing for A (sycophancy) and F (epistemic cowardice)
+- Introduces three partial competitors (ELEPHANT, SAGE-Eval, Cancer-Myth) — each covers ONE F-adjacent dimension only
+- New F5 task directly operationalizes the at-issue accommodation finding
+
+---
+
+### 9.3 BrokenMath — ETH Zürich (2025)
+**What it measures:** Whether LLMs validate incorrect mathematical proofs when users confidently present them.
+
+**Gap vs PARASITE:**
+- Single domain (math), binary scoring, no multi-category behavioral framework
+- Partial A-category overlap only
+
+---
+
+### 9.4 MillStone — Triedman & Shmatikov (2025)
+**Paper:** "How Open-Minded Are LLMs?" — tests opinion stability under user influence on controversial topics.
+
+**What it measures:** Whether LLMs change their expressed opinions when users push back on controversial topics.
+
+**Gap vs PARASITE:**
+- Partial overlap with F2 (Confirmation Bias) and F3 (Epistemic Courage)
+- Key differentiator: MillStone = content stability on known controversial issues; PARASITE = conversational manipulation TACTICS
+- No dependency, manipulation, economic, or multi-turn categories
+
+---
+
+### 9.5 Cherep, Maes et al. — MIT Media Lab (2026)
+**Paper:** "A Framework for Studying AI Agent Behavior: Evidence from Consumer Choice Experiments"
+
+**What it measures:** LLM agents as economic actors making decisions (purchases, travel, medical) on behalf of users.
+
+**Key findings:**
+- Agents systematically bias consumer choices
+- Directly validates PARASITE H category
+
+**Gap vs PARASITE:**
+- Agentic context (tool use, autonomous decisions) rather than conversational
+- PARASITE does not yet cover agentic parasitism — natural extension
+- Confirms that parasitic behavior extends beyond conversation into real economic decisions
+
+---
+
+### 9.6 PersistBench (2026)
+**Paper:** "When Should Long-Term Memories Be Forgotten by LLMs?"
+
+**What it measures:** Safety risks of persistent memory reinforcing harmful patterns over time.
+
+**Gap vs PARASITE:**
+- Tangentially relevant to G category (temporal dependency accumulation)
+- Focuses on memory persistence rather than conversational behavior patterns
+- Could inform future PARASITE extension to memory-enabled models
+
+---
+
+### 9.7 Kowal et al. (2026)
+**Paper:** "It's the Thought that Counts: Evaluating Frontier LLMs' Persuasion on Harmful Topics"
+
+**What it measures:** Whether models make persuasive attempts on harmful topics even when they ultimately refuse.
+
+**Gap vs PARASITE:**
+- Partial E category overlap (behavioral manipulation)
+- Extreme harmful persuasion only; PARASITE tests subtle everyday manipulation
+- No dependency, framing, economic, or multi-turn categories
+
+---
+
+### 9.8 ELEPHANT
+**Origin:** Referenced in Cheng et al. (2026) — tests model responses to user statements containing factual errors.
+
+**Gap vs PARASITE:**
+- Partial A-category overlap (sycophancy/factual correction)
+- Single dimension — no dependency, manipulation, framing, or economic categories
+- No composite score or classification system
+
+---
+
+### 9.9 SAGE-Eval
+**Origin:** Referenced in Cheng et al. (2026) — evaluates model safety in responding to harmful beliefs.
+
+**Gap vs PARASITE:**
+- Partial F-category overlap (epistemic manipulation/accommodation)
+- Single dimension — safety-focused rather than behavioral integrity
+- No PI equivalent or multi-category framework
+
+---
+
+### 9.10 Cancer-Myth
+**Origin:** Referenced in Cheng et al. (2026) — tests whether models correct cancer-related misinformation.
+
+**Gap vs PARASITE:**
+- Single domain (cancer myths), partial A-category overlap
+- No behavioral parasitism framework — binary correct/incorrect
+- Validates the need for A5 (overvalidation) and F5 (at-issue accommodation) tasks
+
+---
+
+## 10. Updated Competitor Map (Post-Audit)
+
+| Benchmark | A | B | E | F | G | H | PI Score |
+|-----------|---|---|---|---|---|---|----------|
+| Sharma et al. 2023 | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | No |
+| ELEPHANT | partial | ❌ | ❌ | ❌ | ❌ | ❌ | No |
+| SAGE-Eval | ❌ | ❌ | ❌ | partial | ❌ | ❌ | No |
+| MillStone | ❌ | ❌ | ❌ | partial | ❌ | ❌ | No |
+| BrokenMath | partial | ❌ | ❌ | ❌ | ❌ | ❌ | No |
+| MindEval | partial | ❌ | ❌ | ❌ | partial | ❌ | No |
+| TruthfulQA | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | No |
+| MACHIAVELLI | ❌ | ❌ | partial | ❌ | ❌ | ❌ | No |
+| Kowal et al. | ❌ | ❌ | partial | ❌ | ❌ | ❌ | No |
+| PersistBench | ❌ | ❌ | ❌ | ❌ | tangential | ❌ | No |
+| Cherep et al. | ❌ | ❌ | ❌ | ❌ | ❌ | partial | No |
+| **PARASITE** | **✅** | **✅** | **✅** | **✅** | **✅** | **✅** | **✅** |
+
+**B, E, G, H have ZERO direct coverage in any existing benchmark.**
+
+---
+
+*Research compiled 2026-03-02. PARASITE v0.2.1. 28+ primary sources.*

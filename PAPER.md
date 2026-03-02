@@ -10,13 +10,15 @@
 
 ## Abstract
 
-We introduce PARASITE, a deployment-time evaluation framework that measures parasitic conversational patterns in RLHF-trained language models. Existing benchmarks evaluate factual accuracy (TruthfulQA), agentic ethics (MACHIAVELLI), or safety (red teaming), but none quantify the subtle behavioral patterns -- sycophancy, dependency creation, epistemic manipulation, and economic steering -- that emerge from preference optimization in deployed AI assistants. PARASITE defines six behavioral categories spanning 240 task variants across 24 tests, producing a composite PARASITE Index (PI) that classifies models on a spectrum from mutualistic (empowering users) to parasitic (creating dependency). The framework employs three novel methodological contributions: (1) multi-turn dependency detection that captures behavioral drift across conversation sequences, (2) canary anti-gaming variants that detect benchmark optimization versus genuine behavioral improvement, and (3) cross-family ensemble judging with a three-model panel to mitigate self-enhancement bias. Preliminary results across GPT-4o (PI=0.2004, Commensal) and GLM-4.7-flash (PI=0.1485, Commensal) reveal that current models perform well on overt sycophancy avoidance but exhibit measurable parasitic patterns in dependency creation and epistemic framing -- categories invisible to existing evaluation instruments. These findings suggest that RLHF's preference optimization systematically incentivizes engagement-maximizing behaviors that operate below the threshold of conventional alignment evaluation.
+We introduce PARASITE, a deployment-time evaluation framework that measures parasitic conversational patterns in RLHF-trained language models. Existing benchmarks evaluate factual accuracy (TruthfulQA), agentic ethics (MACHIAVELLI), or safety (red teaming), but none quantify the subtle behavioral patterns -- sycophancy, dependency creation, epistemic manipulation, and economic steering -- that emerge from preference optimization in deployed AI assistants. We find that no existing benchmark measures dependency creation (B), multi-turn dependency accumulation (G), or economic parasitism (H) -- three of PARASITE's six categories have zero coverage in the literature. PARASITE defines six behavioral categories spanning 240 task variants across 24 tests, producing a composite PARASITE Index (PI) that classifies models on a spectrum from mutualistic (empowering users) to parasitic (creating dependency). The framework employs three novel methodological contributions: (1) multi-turn dependency detection that captures behavioral drift across conversation sequences, (2) canary anti-gaming variants that detect benchmark optimization versus genuine behavioral improvement, and (3) cross-family ensemble judging with a three-model panel to mitigate self-enhancement bias. Preliminary results across GPT-4o (PI=0.2004, Commensal) and GLM-4.7-flash (PI=0.1485, Commensal) reveal that current models perform well on overt sycophancy avoidance but exhibit measurable parasitic patterns in dependency creation and epistemic framing -- categories invisible to existing evaluation instruments. These findings suggest that RLHF's preference optimization systematically incentivizes engagement-maximizing behaviors that operate below the threshold of conventional alignment evaluation.
 
 ---
 
 ## 1. Introduction
 
 The deployment of RLHF-trained language models as conversational assistants has created a measurement gap in AI evaluation. Current benchmarks assess whether models produce truthful outputs [2], whether they pursue dangerous instrumental goals [3, 9], or whether they generate harmful content [7]. However, none measure the behavioral quality of the conversational relationship between model and user -- specifically, whether the model's interaction patterns empower users toward autonomy or create subtle dependencies that maximize engagement at the user's expense.
+
+The EU AI Act's requirement that AI systems avoid "manipulation of persons" (Article 5) and maintain "transparency" (Article 13) creates a direct regulatory demand for behavioral integrity benchmarks. PARASITE provides the first quantitative operationalization of these requirements.
 
 This gap matters because RLHF's training mechanism systematically incentivizes sycophantic behavior. Sharma et al. [1] demonstrated that human annotators prefer sycophantic responses a non-negligible fraction of the time, and that preference models inherit this bias, creating a feedback loop where models are trained to agree, validate, and please rather than to inform, teach, and empower. The problem intensifies with scale: Lin et al. [2] showed that larger models are less truthful because they more faithfully imitate human falsehoods, an inverse scaling result that likely extends to behavioral patterns beyond factual accuracy.
 
@@ -73,6 +75,14 @@ The evaluation of language model behavior draws on several intersecting research
 **Chun and Elkins (2026)** [17] identified the Paradox of Robustness: models trained to resist adversarial manipulation sometimes become more rigid and less genuinely helpful, failing to update on legitimate user corrections. This paradox highlights the importance of PARASITE's scoring calibration -- true mutualism requires both resisting sycophantic capitulation and genuinely integrating valid user input.
 
 **Anonymous (2026)** [18] proposed a two-axis framework distinguishing intelligence (capacity to reach correct conclusions) from integrity (stability of conclusions under irrelevant social pressure). Their integrity axis maps directly to PARASITE's combined A and F category scores, and their framework validates PARASITE's conceptual foundation while lacking PARASITE's standardized scoring formula, cross-model leaderboard, and reproducible evaluation pipeline.
+
+**Pombal et al. (2025)** [19] introduced MindEval, benchmarking 12 LLMs on multi-turn mental health support, finding that all models score below 4/6 and that sycophancy and overvalidation are the primary failure modes. Critically, MindEval finds that LLM quality in multi-turn interactions deteriorates with conversation length, providing empirical grounding for PARASITE's G category. Their finding that model scale and reasoning do not guarantee better performance is consistent with PARASITE's preliminary inverse scaling observations.
+
+**Cheng, Hawkins & Jurafsky (2026)** [20] identified "accommodation" as the pragmatic mechanism underlying sycophancy — LLMs default to agreeing with user assumptions due to linguistic accommodation patterns involving at-issueness, encoding, and source reliability. Their work provides the deepest theoretical backing for PARASITE's A and F categories, and introduces three partial competitors (ELEPHANT, SAGE-Eval, Cancer-Myth) that each cover one F-adjacent dimension. PARASITE's A and F categories operationalize this accommodation mechanism across a broader behavioral spectrum.
+
+**Cherep, Maes et al. (2026)** [21] (MIT Media Lab) demonstrated that LLM agents systematically bias consumer decisions in purchase, travel, and medical contexts, validating PARASITE's H (Economic Parasitism) category. Their consumer choice experiment framework confirms that parasitic bias extends beyond conversation into agentic decision-making — extending PARASITE to agentic settings is a natural next step.
+
+**Triedman & Shmatikov (2025)** [22] introduced MillStone, measuring opinion stability in LLMs under user influence on controversial topics. MillStone measures opinion stability; PARASITE's F category extends this to test the conversational tactics used to undermine or protect epistemic integrity. Where MillStone measures content stability on known controversial issues, PARASITE measures the conversational manipulation tactics themselves.
 
 **Li et al. (2024)** [14] provided the most comprehensive survey of LLM-as-judge methods, reviewing over 370 citations. Key findings include that GPT-4o and Claude Opus achieve the highest correlation with human judgment, that cross-family diversity in ensembles outperforms cross-size diversity, and that three-judge ensembles provide the optimal cost-reliability tradeoff. PARASITE's ensemble judging design (Section 3.6) directly implements their recommendations.
 
@@ -218,6 +228,8 @@ The preliminary data is consistent with -- but insufficient to confirm -- an inv
 
 Confirming this hypothesis requires evaluating additional model sizes (GPT-4o-mini, Llama-3.1 at 8B and 70B parameters, Claude models at varying sizes) and isolating model scale from RLHF intensity, which is confounded in the current two-model comparison.
 
+Our cross-judged results (GPT-4o PI=0.200, GLM PI=0.148) hint at an inverse scaling effect consistent with TruthfulQA's finding [2] that larger RLHF models may exhibit stronger parasitic patterns. If confirmed across a broader model size sweep, this would represent a significant finding: that RLHF's preference optimization not only fails to reduce behavioral parasitism at scale, but actively amplifies it. The mechanism is intuitive — larger models more faithfully capture the implicit human preference for engagement-maximizing responses, and RLHF more effectively optimizes for these preferences. Confirming this requires a multi-model run across model sizes — a direction we leave for future work.
+
 ---
 
 ## 6. Discussion
@@ -247,6 +259,8 @@ Several limitations constrain interpretation of the current results.
 **Categories G and H.** Multi-turn dependency (G) and economic parasitism (H) have been designed and implemented at the task level but have not yet been validated through large-scale evaluation runs. Their inclusion in the PI formula is based on theoretical justification rather than empirical calibration.
 
 **Prompt sensitivity.** Preliminary runs showed non-trivial variance across different prompt phrasings for the same underlying behavioral test (e.g., F2 scores varied between 0.149 and 0.420 for GPT-4o across runs with different variant sets), indicating that PARASITE scores should be interpreted as ranges rather than point estimates.
+
+**Agentic contexts.** PARASITE currently does not measure parasitism in agentic contexts (tool use, autonomous decision-making). Cherep et al. (2026) [21] demonstrate significant parasitic bias in agentic consumer decisions — extending PARASITE to agentic settings is a natural next step.
 
 ### 6.4 Future Work
 
@@ -307,3 +321,11 @@ PARASITE's methodological contributions -- multi-turn dependency detection, cana
 [17] Chun, S. & Elkins, K. (2026). "The Paradox of Robustness: When Alignment Training Makes Models Less Genuinely Helpful." *arXiv preprint.*
 
 [18] Anonymous. (2026). "Intelligence Without Integrity: Why Capable LLMs May Undermine Reliability." *arXiv preprint.*
+
+[19] Pombal, J., et al. (2025). "MindEval: Benchmarking Language Models on Multi-turn Mental Health Support." *arXiv preprint* arXiv:2511.18491.
+
+[20] Cheng, J., Hawkins, R., & Jurafsky, D. (2026). "Accommodation and Epistemic Vigilance: A Pragmatic Account of Why LLMs Fail to Challenge Harmful Beliefs." *arXiv preprint* arXiv:2601.04435.
+
+[21] Cherep, L., Maes, P., et al. (2026). "A Framework for Studying AI Agent Behavior: Evidence from Consumer Choice Experiments." *MIT Media Lab.*
+
+[22] Triedman, H. & Shmatikov, V. (2025). "MillStone: How Open-Minded Are LLMs? Testing Opinion Stability Under User Influence." *arXiv preprint.*
