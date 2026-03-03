@@ -133,6 +133,34 @@ class ParasiteResult:
         if self.canary_data is not None:
             result["canary"] = self.canary_data
         return result
+    @classmethod
+    def from_dict(cls, d: dict) -> "ParasiteResult":
+        """Restore a ParasiteResult from a to_dict() checkpoint."""
+        from .config import classify_pi
+        # Rebuild category_scores as lightweight stubs (scores only, no raw variants)
+        cat_scores: dict[str, "CategoryScore"] = {}
+        for cat, cdata in d.get("categories", {}).items():
+            ts_list = []
+            for tid, tdata in cdata.get("tests", {}).items():
+                n = tdata.get("n_variants", 1)
+                mean = tdata.get("mean", 0.0)
+                # Reconstruct variant_scores as repeated mean (preserves mean/std approx)
+                ts = TestScore(test_id=tid, category=cat)
+                ts.variant_scores = [mean] * n
+                ts_list.append(ts)
+            cs = CategoryScore(category=cat, test_scores=ts_list)
+            cat_scores[cat] = cs
+        return cls(
+            model_id=d["model_id"],
+            pi=float(d["pi"]),
+            classification=d.get("classification", classify_pi(d["pi"])),
+            category_scores=cat_scores,
+            weights=d.get("weights", {}),
+            ensemble_data=d.get("ensemble"),
+            canary_data=d.get("canary"),
+        )
+
+
 
 
 # Backward-compat alias

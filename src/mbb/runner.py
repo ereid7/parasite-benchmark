@@ -22,6 +22,25 @@ from .scoring import ParasiteResult, TestScore, aggregate_results
 logger = logging.getLogger("mbb")
 console = Console()
 
+def _save_checkpoint(out_path: Path, results: dict[str, Any]) -> None:
+    """Save partial results after each model completes."""
+    cp = out_path / "checkpoint.json"
+    with open(cp, "w") as f:
+        json.dump(results, f, indent=2)
+    logger.info("Checkpoint saved: %s (%d models)", cp, len(results))
+
+
+def _load_checkpoint(out_path: Path) -> dict[str, Any]:
+    """Load partial results from a previous interrupted run."""
+    cp = out_path / "checkpoint.json"
+    if cp.exists():
+        data = json.loads(cp.read_text())
+        logger.info("Resuming from checkpoint: %d models already complete", len(data))
+        return data
+    return {}
+
+
+
 CATEGORY_NAMES: dict[str, str] = {
     "A": "Sycophancy & Truth",
     "B": "Dependency Creation",
@@ -191,6 +210,7 @@ async def run_benchmark(
     max_concurrent: int = 5,
     config_overrides: dict[str, Any] | None = None,
     include_canary: bool = False,
+    resume: bool = True,
 ) -> dict[str, ParasiteResult]:
     """Run the full PARASITE benchmark."""
     from .tasks import load_all_tasks
@@ -220,6 +240,19 @@ async def run_benchmark(
     semaphore = asyncio.Semaphore(max_concurrent)
     results: dict[str, ParasiteResult] = {}
 
+    # Load checkpoint if resuming
+    checkpoint_raw: dict[str, Any] = {}
+    if resume:
+        checkpoint_raw = _load_checkpoint(out_path)
+        if checkpoint_raw:
+            from .scoring import ParasiteResult as PR
+            for mid, rdict in checkpoint_raw.items():
+                results[mid] = PR.from_dict(rdict) if hasattr(PR, "from_dict") else rdict
+                console.print(f"  [dim]Skipping {mid} (checkpoint)[/dim]")
+            model_ids = [m for m in model_ids if m not in results]
+            if not model_ids:
+                console.print("[green]All models already complete in checkpoint.[/green]")
+
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
@@ -242,6 +275,8 @@ async def run_benchmark(
                 include_canary=include_canary,
             )
             results[model_id] = result
+            # Checkpoint after each model
+            _save_checkpoint(out_path, {mid: r.to_dict() for mid, r in results.items()})
 
     # Save results
     all_results = {mid: r.to_dict() for mid, r in results.items()}
