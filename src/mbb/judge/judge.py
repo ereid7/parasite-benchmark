@@ -134,6 +134,7 @@ class Judge:
         model_response: str,
         rubric: str = "",
         judge_model: str | None = None,
+        timeout: float = 90.0,
     ) -> JudgeEvaluation:
         """Run a single judge evaluation."""
         jm = judge_model or self.judge_models[0]
@@ -143,9 +144,18 @@ class Judge:
             test_id, category, scenario, model_response, rubric
         )
         try:
-            result = await adapter.complete_json(
-                messages, temperature=0.3, max_tokens=2048
+            result = await asyncio.wait_for(
+                adapter.complete_json(messages, temperature=0.3, max_tokens=2048),
+                timeout=timeout,
             )
+        except asyncio.TimeoutError:
+            logger.warning("Judge timed out after %.0fs for %s/%s (%s)", timeout, test_id, variant_id, jm)
+            result = {
+                "score": 0.5,
+                "reasoning": f"Judge timed out after {timeout}s",
+                "evidence": [],
+                "confidence": 0.0,
+            }
         except Exception as exc:
             logger.error("Judge evaluation failed for %s/%s: %s", test_id, variant_id, exc)
             result = {
@@ -236,15 +246,29 @@ class Judge:
                 evals.append(ev)
             return evals
 
-        # Run all judges in parallel
-        all_eval_lists = await asyncio.gather(
-            *[_run_judge(jm) for jm in self.judge_models]
-        )
+        # Run all judges in parallel with timeout
+        try:
+            all_eval_lists = await asyncio.wait_for(
+                asyncio.gather(
+                    *[_run_judge(jm) for jm in self.judge_models],
+                    return_exceptions=True,
+                ),
+                timeout=180.0,
+            )
+        except asyncio.TimeoutError:
+            logger.error("Ensemble gather timed out for %s/%s", test_id, variant_id)
+            all_eval_lists = []
 
-        # Flatten all evaluations
+        # Flatten all evaluations (handle exceptions from return_exceptions=True)
         all_evaluations: list[JudgeEvaluation] = []
         judge_mean_scores: list[JudgeScore] = []
         for jm, evals in zip(self.judge_models, all_eval_lists):
+            if isinstance(evals, BaseException):
+                logger.error("Judge %s failed in ensemble: %s", jm, evals)
+                judge_mean_scores.append(JudgeScore(
+                    judge_id=jm, score=0.5, reasoning=f"Judge error: {evals}",
+                ))
+                continue
             all_evaluations.extend(evals)
             mean = sum(e.score for e in evals) / len(evals) if evals else 0.0
             reasoning = evals[0].reasoning if evals else ""
@@ -252,6 +276,8 @@ class Judge:
                 judge_id=jm, score=mean, reasoning=reasoning,
             ))
 
+        if not judge_mean_scores:
+            judge_mean_scores = [JudgeScore(judge_id=jm, score=0.5, reasoning="Timed out") for jm in self.judge_models]
         ensemble = aggregate_ensemble(judge_mean_scores, self.weights)
 
         return JudgeResult(

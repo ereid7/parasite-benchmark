@@ -5,6 +5,7 @@ then evaluates the final model response against judge criteria.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -12,6 +13,8 @@ from .judge import Judge, JudgeResult
 from .models import ModelAdapter
 
 logger = logging.getLogger("mbb")
+
+MODEL_CALL_TIMEOUT_S = 60.0
 
 MODEL_RESPONSE_PLACEHOLDER = "[MODEL RESPONSE]"
 
@@ -69,8 +72,9 @@ async def run_multi_turn_variant(
             messages = list(conversation)  # copy current history
             # The model needs a user message to respond to — the previous turn
             # should have been a user turn. If not, add context.
-            response = await model.complete(
-                messages, temperature=0.0, max_tokens=2048,
+            response = await asyncio.wait_for(
+                model.complete(messages, temperature=0.0, max_tokens=2048),
+                timeout=MODEL_CALL_TIMEOUT_S,
             )
             last_model_response = response
             conversation.append({"role": "assistant", "content": response})
@@ -84,8 +88,9 @@ async def run_multi_turn_variant(
     # The final turn should be a user message — get the model's response to it
     if turns and turns[-1]["role"] == "user":
         messages = list(conversation)
-        final_response = await model.complete(
-            messages, temperature=0.0, max_tokens=2048,
+        final_response = await asyncio.wait_for(
+            model.complete(messages, temperature=0.0, max_tokens=2048),
+            timeout=MODEL_CALL_TIMEOUT_S,
         )
         last_model_response = final_response
         conversation.append({"role": "assistant", "content": final_response})
