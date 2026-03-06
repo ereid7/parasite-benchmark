@@ -33,17 +33,38 @@ def main() -> None:
 @click.option("-t", "--tasks", default=None, help="Comma-separated task IDs (default: all).")
 @click.option("-c", "--config", "config_path", default=None, type=click.Path(exists=True),
               help="Config file path.")
-@click.option("-j", "--judge", default="glm-4.7-flash",
-              help="Judge model ID(s). Comma-separated for ensemble: gpt-4o,claude-3-5-haiku-20241022")
+@click.option("--version", "benchmark_version", default="1.0", show_default=True,
+              type=click.Choice(["1.0", "2.1"]), help="Benchmark version.")
+@click.option(
+    "-j",
+    "--judge",
+    default=None,
+    help=(
+        "Judge model ID(s). For v1 default is glm-4.7-flash. "
+        "For v2.1 default is 5-judge ensemble."
+    ),
+)
 @click.option("--judge-weights", default=None,
               help="Comma-separated weights for ensemble judges (must sum to 1.0). "
                    "Defaults to equal weights if not provided.")
 @click.option("-n", "--judge-runs", default=3, type=int, help="Judge runs per variant per judge.")
 @click.option("-o", "--output", default="results", help="Output directory.")
 @click.option("--concurrency", default=5, type=int, help="Max concurrent API calls.")
-@click.option("--canary/--no-canary", default=False, help="Include canary variants for gaming detection.")
+@click.option("--canary/--no-canary", default=True, help="Include canary variants for gaming detection.")
 @click.option("--log-level", default="INFO", help="Logging level.")
-def run(models, tasks, config_path, judge, judge_weights, judge_runs, output, concurrency, canary, log_level) -> None:
+def run(
+    models,
+    tasks,
+    config_path,
+    benchmark_version,
+    judge,
+    judge_weights,
+    judge_runs,
+    output,
+    concurrency,
+    canary,
+    log_level,
+) -> None:
     """Run the PARASITE benchmark on specified models."""
     from .config import load_config
     from .runner import run_benchmark
@@ -58,10 +79,56 @@ def run(models, tasks, config_path, judge, judge_weights, judge_runs, output, co
     if judge_weights:
         parsed_weights = [float(w.strip()) for w in judge_weights.split(",")]
 
+    # --- Cross-judge enforcement: block same-provider judging ---
+    judge_ids = [j.strip() for j in (judge or "").split(",") if j.strip()]
+    if judge_ids:
+        def _provider_prefix(model_id: str) -> str:
+            """Extract provider prefix from a model ID (e.g. 'openai/' from 'openai/gpt-4o')."""
+            if "/" in model_id and not model_id.startswith("http"):
+                return model_id.split("/")[0].lower()
+            mid = model_id.lower()
+            if any(k in mid for k in ("gpt", "o1-", "o3-")):
+                return "openai"
+            if "claude" in mid:
+                return "anthropic"
+            if "gemini" in mid:
+                return "google"
+            if "glm" in mid:
+                return "zhipu"
+            return mid
+        for target in model_list:
+            target_provider = _provider_prefix(target)
+            for jid in judge_ids:
+                judge_provider = _provider_prefix(jid)
+                if target_provider == judge_provider:
+                    console.print(
+                        f"[bold red]ERROR: Self-judging detected![/bold red]\n"
+                        f"  Judge '{jid}' (provider: {judge_provider}) cannot evaluate "
+                        f"target '{target}' (provider: {target_provider}).\n"
+                        f"  Same-provider judging causes self-enhancement bias.\n"
+                        f"  Use a judge from a different provider family.\n"
+                        f"  Example: use Claude Haiku for GPT models, GPT-4.1-mini for Claude/Gemini."
+                    )
+                    sys.exit(1)
+
+    if benchmark_version == "2.1":
+        from .v2.runner import run_benchmark_v21
+        asyncio.run(run_benchmark_v21(
+            model_ids=model_list,
+            task_ids=task_list,
+            judge_model=judge,
+            judge_runs=judge_runs,
+            judge_weights=parsed_weights,
+            output_dir=output,
+            max_concurrent=concurrency,
+            include_canary=canary,
+        ))
+        return
+
     asyncio.run(run_benchmark(
         model_ids=model_list,
         task_ids=task_list,
-        judge_model=judge,
+        judge_model=judge or "glm-4.7-flash",
         judge_runs=judge_runs,
         judge_weights=parsed_weights,
         output_dir=output,
@@ -73,15 +140,20 @@ def run(models, tasks, config_path, judge, judge_weights, judge_runs, output, co
 
 @main.command("list")
 @click.argument("what", type=click.Choice(["tasks"]))
-@click.option("--category", "-c", default=None, help="Filter by category (A, B, E, F, G, H).")
-def list_items(what, category) -> None:
+@click.option("--category", "-c", default=None, help="Filter by category.")
+@click.option("--version", "benchmark_version", default="1.0", show_default=True,
+              type=click.Choice(["1.0", "2.1"]), help="Benchmark version.")
+def list_items(what, category, benchmark_version) -> None:
     """List available tasks."""
     if what == "tasks":
-        _list_tasks(category)
+        _list_tasks(category, benchmark_version=benchmark_version)
 
 
-def _list_tasks(category_filter: str | None = None) -> None:
-    from .tasks import discover_tasks
+def _list_tasks(category_filter: str | None = None, benchmark_version: str = "1.0") -> None:
+    if benchmark_version == "2.1":
+        from .v2.tasks import discover_tasks_v21 as discover_tasks
+    else:
+        from .tasks import discover_tasks
 
     tasks = discover_tasks()
     table = Table(title="PARASITE Tasks")
@@ -105,9 +177,14 @@ def _list_tasks(category_filter: str | None = None) -> None:
 @main.command()
 @click.option("-m", "--models", required=True, help="Comma-separated model IDs.")
 @click.option("-n", "--judge-runs", default=3, type=int, help="Judge runs per variant.")
-def estimate(models, judge_runs) -> None:
+@click.option("--version", "benchmark_version", default="1.0", show_default=True,
+              type=click.Choice(["1.0", "2.1"]), help="Benchmark version.")
+def estimate(models, judge_runs, benchmark_version) -> None:
     """Estimate API costs for a benchmark run."""
-    from .tasks import discover_tasks
+    if benchmark_version == "2.1":
+        from .v2.tasks import discover_tasks_v21 as discover_tasks
+    else:
+        from .tasks import discover_tasks
 
     tasks = discover_tasks()
     n_variants = sum(t["n_variants"] for t in tasks)

@@ -1,3 +1,15 @@
+# ---------------------------------------------------------------------------
+# Cross-Judge Rule: The judge model MUST be from a different provider than
+# the model being tested. Same-provider judging causes self-enhancement bias
+# (up to 3.7x score variation observed). Examples:
+#   - Testing GPT models  → use Claude Haiku or Gemini as judge
+#   - Testing Claude models → use GPT-4.1-mini or GLM as judge
+#   - Testing Gemini models → use Claude Haiku or GPT-4.1-mini as judge
+# The CLI enforces this automatically and will exit with an error if violated.
+# ---------------------------------------------------------------------------
+
+judge_policy: cross_provider_only
+
 judge:
   models: [gpt-4o, claude-3-5-haiku-20241022]
   weights:

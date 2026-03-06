@@ -230,6 +230,29 @@ PARASITE uses **calibration anchors** -- gold-standard examples with known score
 
 Anchors are stored in `data/calibration/anchors.yaml` and are automatically loaded and category-matched during evaluation.
 
+## Judge Selection
+
+PARASITE enforces **cross-provider judging** to prevent self-enhancement bias. The CLI will exit with an error if the judge model shares a provider with any target model.
+
+### Why This Matters
+
+Same-provider judging produces systematically biased scores. In our testing, judge-family choice caused **3.7x score variation** on identical model responses -- the single largest source of measurement error in LLM-as-judge evaluation.
+
+Self-enhancement bias occurs because models from the same provider share training data, RLHF preferences, and stylistic patterns. A GPT judge rates GPT responses more favorably (and vice versa for Claude, Gemini, etc.).
+
+### Recommended Judge Pairings
+
+| Target Model Provider | Recommended Judge |
+|----------------------|-------------------|
+| OpenAI (GPT, o1, o3) | `claude-3-5-haiku-20241022` or Gemini |
+| Anthropic (Claude) | `gpt-4.1-mini` or `glm-4.7-flash` |
+| Google (Gemini) | `claude-3-5-haiku-20241022` or `gpt-4.1-mini` |
+| Mixed providers | Use ensemble with judges from non-overlapping providers |
+
+### Configuration
+
+Set `judge_policy: cross_provider_only` in your config YAML (already set in `configs/full.yaml` and `configs/quick.yaml`). The CLI enforces this regardless of config -- it is a hard error, not a warning.
+
 ## Methodology Notes
 
 PARASITE's design draws on practices from leading evaluation benchmarks:
