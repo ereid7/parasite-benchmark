@@ -68,7 +68,14 @@ def create_adapter(
         (``api_key``, ``base_url``, etc.).
     """
     if provider is None:
-        if "glm" in model_id:
+        # Vercel AI Gateway: provider/model-name format
+        if "/" in model_id and not model_id.startswith("http"):
+            import os
+            provider = "openai"  # Vercel uses OpenAI-compatible API
+            kwargs.setdefault("api_key", os.environ.get("VERCEL_AI_GATEWAY_KEY"))
+            kwargs.setdefault("base_url", "https://ai-gateway.vercel.sh/v1")
+            # model_id stays as-is: "openai/gpt-4o", "anthropic/claude-sonnet-4-6", etc.
+        elif "glm" in model_id:
             provider = "openai"
             # Z.AI GLM uses OpenAI-compatible API
             import os

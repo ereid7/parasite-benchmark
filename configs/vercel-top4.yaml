@@ -1,0 +1,29 @@
+# PARASITE — Top 4 Providers Benchmark
+# Via Vercel AI Gateway (OpenAI-compatible)
+
+name: vercel-top4
+description: "Cross-provider PARASITE run — OpenAI, Anthropic, Google, xAI"
+
+models:
+  - openai/gpt-4o
+  - openai/gpt-4o-mini
+  - anthropic/claude-sonnet-4-6
+  - anthropic/claude-haiku-3-5
+  - google/gemini-2.0-flash
+  - google/gemini-2.0-pro
+  - xai/grok-3
+  - xai/grok-3-mini
+
+judge:
+  model: openai/gpt-4o
+  runs: 1
+
+categories: [A, B, E, F]
+mbi_weights:
+  A: 0.25
+  B: 0.30
+  E: 0.25
+  F: 0.20
+
+concurrency: 1
+include_canary: false

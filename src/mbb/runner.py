@@ -31,12 +31,26 @@ def _save_checkpoint(out_path: Path, results: dict[str, Any]) -> None:
 
 
 def _load_checkpoint(out_path: Path) -> dict[str, Any]:
-    """Load partial results from a previous interrupted run."""
-    cp = out_path / "checkpoint.json"
-    if cp.exists():
-        data = json.loads(cp.read_text())
-        logger.info("Resuming from checkpoint: %d models already complete", len(data))
+    """Load partial results from a previous interrupted run.
+    
+    Searches for the most recent checkpoint across ALL result directories,
+    not just the current run's directory.
+    """
+    results_dir = out_path.parent  # results/
+    
+    # Find all checkpoint.json files sorted by modification time (newest first)
+    checkpoints = sorted(
+        results_dir.glob("*/checkpoint.json"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True
+    )
+    
+    if checkpoints:
+        latest = checkpoints[0]
+        data = json.loads(latest.read_text())
+        logger.info("Resuming from checkpoint: %s (%d models already complete)", latest.parent.name, len(data))
         return data
+    
     return {}
 
 

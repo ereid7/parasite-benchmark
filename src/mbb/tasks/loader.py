@@ -26,6 +26,8 @@ def discover_tasks() -> list[dict[str, Any]]:
     """Discover all task YAML files and return summary info."""
     tasks: list[dict[str, Any]] = []
     for yaml_file in sorted(DATA_DIR.rglob("*.yaml")):
+        if "v2.1" in yaml_file.parts:
+            continue
         try:
             with open(yaml_file) as f:
                 data = yaml.safe_load(f)
@@ -54,6 +56,8 @@ def load_all_tasks(task_ids: list[str] | None = None) -> list[dict[str, Any]]:
     """Load all tasks (or a subset by ID) with full content."""
     tasks: list[dict[str, Any]] = []
     for yaml_file in sorted(DATA_DIR.rglob("*.yaml")):
+        if "v2.1" in yaml_file.parts:
+            continue
         try:
             with open(yaml_file) as f:
                 data = yaml.safe_load(f)

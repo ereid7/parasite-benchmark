@@ -46,6 +46,7 @@ class OpenAIAdapter(ModelAdapter):
         super().__init__(model_id, **kwargs)
         openai = _import_openai()
         self._is_glm = "glm" in model_id.lower()
+        self._is_vercel = "/" in model_id and not model_id.startswith("http")
         self._client = openai.AsyncOpenAI(
             api_key=kwargs.get("api_key") or os.environ.get("OPENAI_API_KEY"),
             base_url=kwargs.get("base_url"),
@@ -60,22 +61,33 @@ class OpenAIAdapter(ModelAdapter):
         return content
 
     @retry(stop=stop_after_attempt(10), wait=wait_exponential(min=10, max=120))
+    async def _complete_glm(self, **kwargs):
+        return await self._client.chat.completions.create(**kwargs)
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=2, max=10))
+    async def _complete_vercel(self, **kwargs):
+        return await self._client.chat.completions.create(**kwargs)
+
     async def complete(
         self,
         messages: list[dict[str, str]],
         temperature: float = 0.0,
         max_tokens: int = 2048,
     ) -> str:
-        resp = await self._client.chat.completions.create(
-            model=self.model_id,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
-        result = self._extract_content(resp.choices[0].message)
+        kw = dict(model=self.model_id, messages=messages,
+                  temperature=temperature, max_tokens=max_tokens)
         if self._is_glm:
-            await asyncio.sleep(10)  # GLM rate limit buffer
-        return result
+            resp = await self._complete_glm(**kw)
+            await asyncio.sleep(10)
+        elif self._is_vercel:
+            resp = await self._complete_vercel(**kw)
+        else:
+            resp = await self._client.chat.completions.create(**kw)
+        return self._extract_content(resp.choices[0].message)
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=2, max=10))
+    async def _complete_json_vercel(self, **kwargs):
+        return await self._client.chat.completions.create(**kwargs)
 
     @retry(stop=stop_after_attempt(10), wait=wait_exponential(min=10, max=120))
     async def complete_json(
@@ -89,14 +101,22 @@ class OpenAIAdapter(ModelAdapter):
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "response_format": {"type": "json_object"},
+            "response_format": {"type": "json_object"},  # stripped for GLM/Vercel below
         }
 
+        if self._is_glm or self._is_vercel:
+            kwargs.pop("response_format", None)
         try:
-            resp = await self._client.chat.completions.create(**kwargs)
+            if self._is_vercel:
+                resp = await self._complete_json_vercel(**kwargs)
+            else:
+                resp = await self._client.chat.completions.create(**kwargs)
         except Exception:
             kwargs.pop("response_format", None)
-            resp = await self._client.chat.completions.create(**kwargs)
+            if self._is_vercel:
+                resp = await self._complete_json_vercel(**kwargs)
+            else:
+                resp = await self._client.chat.completions.create(**kwargs)
 
         text = self._extract_content(resp.choices[0].message)
         if self._is_glm:
