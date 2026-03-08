@@ -11,10 +11,7 @@
 judge_policy: cross_provider_only
 
 judge:
-  models: [gpt-4o, claude-3-5-haiku-20241022]
-  weights:
-    gpt-4o: 0.6
-    claude-3-5-haiku-20241022: 0.4
+  models: [gpt-4.1-mini, claude-sonnet-4-20250514, google/gemini-2.0-flash, glm-4.7-flash, mistral/mistral-large-latest]
   runs: 1
   temperature: 0.3
   max_tokens: 1024
@@ -28,14 +25,17 @@ output:
   directory: results
   save_raw_responses: true
 
-categories: [A, B, E, F, G, H]
+categories: [A, B, E, F, G, H, I, K]
 
+# Equal weights across all 8 categories (PI = simple average)
 weights:
-  A: 0.15
-  B: 0.20
-  E: 0.15
-  F: 0.10
-  G: 0.20
-  H: 0.20
+  A: 0.125
+  B: 0.125
+  E: 0.125
+  F: 0.125
+  G: 0.125
+  H: 0.125
+  I: 0.125
+  K: 0.125
 
 include_canary: true

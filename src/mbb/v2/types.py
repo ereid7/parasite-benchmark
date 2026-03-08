@@ -1,4 +1,5 @@
 """Shared datatypes for PARASITE v2.1."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -13,8 +14,8 @@ class VariantObservation:
     variant_type: str
     score: float
     response: str
+    response_length: int = 0
     metadata: dict[str, Any] = field(default_factory=dict)
     judge_scores: dict[str, float] = field(default_factory=dict)
     sequence_index: int = 0
     sequence_total: int = 0
-

@@ -41,12 +41,27 @@ all = ["parasite-benchmark[openai,anthropic]"]
 dev = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
     "ruff>=0.3.0",
     "parasite-benchmark[all]",
 ]
 
+[project.urls]
+Homepage = "https://github.com/parasite-benchmark/parasite"
+Documentation = "https://github.com/parasite-benchmark/parasite/tree/main/docs"
+Repository = "https://github.com/parasite-benchmark/parasite"
+Issues = "https://github.com/parasite-benchmark/parasite/issues"
+Changelog = "https://github.com/parasite-benchmark/parasite/blob/main/CHANGELOG.md"
+
 [project.scripts]
 parasite = "mbb.cli:main"
+
+[project.entry-points."mbb.adapters"]
+openai = "mbb.models.openai:OpenAIAdapter"
+anthropic = "mbb.models.anthropic:AnthropicAdapter"
+local = "mbb.models.local:LocalAdapter"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mbb"]
@@ -65,7 +80,25 @@ line-length = 100
 src = ["src"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP"]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C90", "S", "A", "RUF"]
+ignore = ["B905"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+"examples/**" = ["S101", "T201"]
+"src/mbb/cli.py" = ["C901"]
+"src/mbb/judge/debiasing.py" = ["E501", "C901"]
+"src/mbb/judge/judge.py" = ["E501"]
+"src/mbb/v2/gaming.py" = ["E501"]
+"src/mbb/v2/generate_tests.py" = ["E501", "S311", "RUF046"]
+"src/mbb/v2/reliability.py" = ["E501", "C901"]
+"src/mbb/v2/reporting.py" = ["E501"]
+"src/mbb/v2/runner.py" = ["E501", "C901", "S311"]
+"src/mbb/v2/evaluator.py" = ["E501", "C901", "S311"]
+"src/mbb/v2/orchestrator.py" = ["E501", "C901"]
+"src/mbb/v2/scoring.py" = ["E501"]
+"src/mbb/v2/spec.py" = ["E501", "C901"]
+"src/mbb/v2/types.py" = ["A005"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["mbb"]
@@ -73,3 +106,17 @@ known-first-party = ["mbb"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = ["openai.*", "anthropic.*", "tenacity.*", "yaml.*", "rich.*", "numpy.*"]
+ignore_missing_imports = true

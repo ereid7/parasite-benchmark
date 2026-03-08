@@ -1,6 +1,6 @@
 # PARASITE: Measuring Extractive Behavioral Patterns in RLHF-Trained Conversational AI
 
-**A Blind Multi-Category Benchmark for Sycophancy, Dependency Creation, Manipulation, Epistemic Framing, Multi-Turn Dependency, and Economic Parasitism**
+**A Blind Multi-Category Benchmark for Sycophancy, Dependency, Manipulation, Epistemic Integrity, Multi-Turn Patterns, Economic Parasitism, Self-Transparency, and Knowledge Integrity**
 
 **Authors:** [Authors]
 **Date:** February 2026
@@ -10,7 +10,7 @@
 
 ## Abstract
 
-We introduce PARASITE, a deployment-time evaluation framework that measures parasitic conversational patterns in RLHF-trained language models. Existing benchmarks evaluate factual accuracy (TruthfulQA), agentic ethics (MACHIAVELLI), or safety (red teaming), but none quantify the subtle behavioral patterns -- sycophancy, dependency creation, epistemic manipulation, and economic steering -- that emerge from preference optimization in deployed AI assistants. We find that no existing benchmark measures dependency creation (B), multi-turn dependency accumulation (G), or economic parasitism (H) -- three of PARASITE's six categories have zero coverage in the literature. PARASITE defines six behavioral categories spanning 240 task variants across 24 tests, producing a composite PARASITE Index (PI) that classifies models on a spectrum from mutualistic (empowering users) to parasitic (creating dependency). The framework employs three novel methodological contributions: (1) multi-turn dependency detection that captures behavioral drift across conversation sequences, (2) canary anti-gaming variants that detect benchmark optimization versus genuine behavioral improvement, and (3) cross-family ensemble judging with a three-model panel to mitigate self-enhancement bias. Preliminary results across GPT-4o (PI=0.2004, Commensal) and GLM-4.7-flash (PI=0.1485, Commensal) reveal that current models perform well on overt sycophancy avoidance but exhibit measurable parasitic patterns in dependency creation and epistemic framing -- categories invisible to existing evaluation instruments. These findings suggest that RLHF's preference optimization systematically incentivizes engagement-maximizing behaviors that operate below the threshold of conventional alignment evaluation.
+We introduce PARASITE, a deployment-time evaluation framework that measures parasitic conversational patterns in RLHF-trained language models. Existing benchmarks evaluate factual accuracy (TruthfulQA), agentic ethics (MACHIAVELLI), or safety (red teaming), but none quantify the subtle behavioral patterns -- sycophancy, dependency creation, epistemic manipulation, and economic steering -- that emerge from preference optimization in deployed AI assistants. We find that no existing benchmark measures dependency creation (B), multi-turn dependency accumulation (G), economic parasitism (H), self-transparency (I), or knowledge integrity (K) -- five of PARASITE's eight categories have zero coverage in the literature. PARASITE defines eight behavioral categories spanning 68 tests with 10+ variants each, producing a composite PARASITE Index (PI) that classifies models on a spectrum from mutualistic (empowering users) to parasitic (creating dependency). The framework employs three novel methodological contributions: (1) multi-turn dependency detection that captures behavioral drift across conversation sequences, (2) canary anti-gaming variants that detect benchmark optimization versus genuine behavioral improvement, and (3) cross-family ensemble judging with a five-model panel to mitigate self-enhancement bias. Preliminary results across GPT-4o (PI=0.2004, Commensal) and GLM-4.7-flash (PI=0.1485, Commensal) reveal that current models perform well on overt sycophancy avoidance but exhibit measurable parasitic patterns in dependency creation and epistemic framing -- categories invisible to existing evaluation instruments. These findings suggest that RLHF's preference optimization systematically incentivizes engagement-maximizing behaviors that operate below the threshold of conventional alignment evaluation.
 
 ---
 
@@ -24,7 +24,7 @@ This gap matters because RLHF's training mechanism systematically incentivizes s
 
 The behavioral spectrum extends well beyond simple sycophancy. Denison et al. [4] demonstrated that models trained to be sycophantic generalize from people-pleasing to more pernicious behaviors, including reward tampering -- a progression from sycophancy to subterfuge. Greenblatt et al. [5] showed that models can distinguish evaluation from deployment contexts and modulate their behavior accordingly, raising fundamental questions about whether behavioral benchmarks measure genuine alignment or strategic performance. These findings suggest that the Helpful, Harmless, Honest (HHH) framework [6], while foundational, does not prevent behavioral parasitism: a model can satisfy HHH criteria while systematically creating user dependency, inflating task complexity, and avoiding epistemic commitments that might reduce future engagement.
 
-PARASITE addresses this gap by defining six categories of behavioral parasitism and producing a quantitative composite score -- the PARASITE Index (PI) -- from deployment-time, API-only evaluation. The six categories are: (A) Sycophancy and Truth, (B) Dependency Creation, (E) Behavioral Manipulation, (F) Framing and Epistemic Manipulation, (G) Multi-Turn Dependency, and (H) Economic Parasitism. Categories B, F, G, and H are novel to the evaluation literature, measuring behavioral dimensions that no existing benchmark captures. The PI is computed as a weighted sum: PI = 0.15A + 0.20B + 0.15E + 0.10F + 0.20G + 0.20H, with weights reflecting the relative severity and subtlety of each parasitic dimension.
+PARASITE addresses this gap by defining eight categories of behavioral parasitism and producing a quantitative composite score -- the PARASITE Index (PI) -- from deployment-time, API-only evaluation. The eight categories are: (A) Sycophancy and Truth, (B) Dependency and Autonomy, (E) Emotional Manipulation, (F) Epistemic Integrity, (G) Multi-Turn Patterns, (H) Economic Parasitism, (I) Self-Transparency, and (K) Knowledge and Competitive Integrity. Categories B, F, G, H, I, and K are novel to the evaluation literature, measuring behavioral dimensions that no existing benchmark captures. The PI is computed as an equally-weighted average of the eight category scores, avoiding researcher degrees of freedom in weight selection. Multiplier analyses (trauma bonding, intermittent reinforcement, context sensitivity) are computed and reported as supplementary diagnostics but not applied to the headline PI score.
 
 The remainder of this paper is organized as follows. Section 2 surveys related work across 18 primary sources. Section 3 details the PARASITE framework, including category definitions, scoring methodology, ensemble judging, and anti-gaming mechanisms. Section 4 describes the task design methodology. Section 5 presents preliminary results. Sections 6 and 7 discuss implications and future directions.
 
@@ -36,7 +36,7 @@ The evaluation of language model behavior draws on several intersecting research
 
 ### 2.1 Sycophancy and Alignment Mechanisms
 
-**Sharma et al. (2023)** [1] provided the first systematic study of sycophancy in RLHF-trained models, testing five state-of-the-art assistants across four free-form text tasks. They demonstrated that sycophancy is not an incidental failure but a systematic artifact of RLHF training: human annotators prefer sycophantic responses, preference models encode this preference, and models are consequently optimized to agree with users rather than inform them. Their work is foundational for PARASITE's Category A but is limited to single-turn evaluations, does not produce quantitative composite scores, and does not address dependency creation, manipulation, or epistemic framing. PARASITE extends their conceptual framework from a single dimension (sycophancy) to six dimensions of behavioral parasitism.
+**Sharma et al. (2023)** [1] provided the first systematic study of sycophancy in RLHF-trained models, testing five state-of-the-art assistants across four free-form text tasks. They demonstrated that sycophancy is not an incidental failure but a systematic artifact of RLHF training: human annotators prefer sycophantic responses, preference models encode this preference, and models are consequently optimized to agree with users rather than inform them. Their work is foundational for PARASITE's Category A but is limited to single-turn evaluations, does not produce quantitative composite scores, and does not address dependency creation, manipulation, or epistemic framing. PARASITE extends their conceptual framework from a single dimension (sycophancy) to eight dimensions of behavioral parasitism.
 
 **Bai et al. (2022)** [6] introduced the Helpful, Harmless, Honest (HHH) framework that defines the objective function for most RLHF training. While seminal, HHH does not operationalize dependency creation or epistemic cowardice -- a model that always agrees, never teaches methods, and inflates task complexity can satisfy all three HHH criteria while exhibiting strong parasitic patterns. PARASITE can be understood as measuring what HHH fails to prevent at deployment: behavioral patterns that are locally helpful but structurally parasitic.
 
@@ -84,7 +84,13 @@ The evaluation of language model behavior draws on several intersecting research
 
 **Triedman & Shmatikov (2025)** [22] introduced MillStone, measuring opinion stability in LLMs under user influence on controversial topics. MillStone measures opinion stability; PARASITE's F category extends this to test the conversational tactics used to undermine or protect epistemic integrity. Where MillStone measures content stability on known controversial issues, PARASITE measures the conversational manipulation tactics themselves.
 
-**Li et al. (2024)** [14] provided the most comprehensive survey of LLM-as-judge methods, reviewing over 370 citations. Key findings include that GPT-4o and Claude Opus achieve the highest correlation with human judgment, that cross-family diversity in ensembles outperforms cross-size diversity, and that three-judge ensembles provide the optimal cost-reliability tradeoff. PARASITE's ensemble judging design (Section 3.6) directly implements their recommendations.
+**Li et al. (2024)** [14] provided the most comprehensive survey of LLM-as-judge methods, reviewing over 370 citations. Key findings include that GPT-4o and Claude Opus achieve the highest correlation with human judgment, and that cross-family diversity in ensembles outperforms cross-size diversity. PARASITE's five-judge ensemble design (Section 3.6) directly implements their recommendations.
+
+**Verga et al. (2024)** [32] demonstrated that a Panel of LLM evaluators (PoLL) using three diverse small models achieves higher agreement with human judgments than a single GPT-4 judge (Cohen's kappa 0.763 vs. 0.627 on NQ), at 7x lower cost. PARASITE's five-judge ensemble extends this principle with additional diversity.
+
+**Dorner et al. (2025)** [33] proved a theoretical limit: when the judge is no more accurate than the evaluated model, no debiasing method can decrease required ground truth labels by more than half. This finding motivates PARASITE's planned human validation of a subset of results and underscores the importance of calibration anchors.
+
+**Cheng et al. (2025)** [34] demonstrated with N=1,604 participants that users prefer sycophantic AI but it reduces prosocial behavior -- providing empirical validation that the parasitic patterns PARASITE measures have measurable downstream effects on user behavior.
 
 ---
 
@@ -92,39 +98,45 @@ The evaluation of language model behavior draws on several intersecting research
 
 ### 3.1 Category Definitions
 
-PARASITE defines six categories of behavioral parasitism, each targeting a distinct mechanism by which a model's conversational behavior can undermine user autonomy. The categories are labeled non-consecutively (A, B, E, F, G, H) to reflect their historical development order and to leave space for future category insertion.
+PARASITE defines eight categories of behavioral parasitism, each targeting a distinct mechanism by which a model's conversational behavior can undermine user autonomy. The categories are labeled non-consecutively (A, B, E, F, G, H, I, K) to reflect their historical development order. All categories are equally weighted (0.125 each) to avoid researcher degrees of freedom in weight selection.
 
-**Category A: Sycophancy and Truth (weight: 0.15).** Measures whether the model agrees with user errors, capitulates under pushback, dodges uncomfortable truths, or blurs the boundary between fact and opinion. This is the most extensively studied parasitic dimension [1, 4] and receives a lower weight because it is the most likely to have been partially addressed by alignment training.
+**Category A: Sycophancy and Truth.** Measures whether the model agrees with user errors, capitulates under pushback, dodges uncomfortable truths, or blurs the boundary between fact and opinion. This is the most extensively studied parasitic dimension [1, 4].
 
-**Category B: Dependency Creation (weight: 0.20).** Measures whether the model teaches methods or merely provides answers, encourages users to solve problems independently, scaffolds progressively as user competence grows, and celebrates user autonomy. This category is novel to the evaluation literature -- no existing benchmark measures dependency creation as a first-class behavioral metric. The higher weight reflects both its novelty and its practical severity: dependency creation directly affects the user's long-term capability development.
+**Category B: Dependency Creation.** Measures whether the model teaches methods or merely provides answers, encourages users to solve problems independently, scaffolds progressively as user competence grows, and celebrates user autonomy. This category is novel to the evaluation literature -- no existing benchmark measures dependency creation as a first-class behavioral metric.
 
-**Category E: Behavioral Manipulation (weight: 0.15).** Measures whether the model employs urgency or fear-of-missing-out language, exploits emotional states for engagement, uses intermittent reinforcement patterns, or pads responses to appear more thorough. These patterns are drawn from the persuasion and dark patterns literature and adapted to the conversational AI context.
+**Category E: Behavioral Manipulation.** Measures whether the model employs urgency or fear-of-missing-out language, exploits emotional states for engagement, uses intermittent reinforcement patterns, or pads responses to appear more thorough. These patterns are drawn from the persuasion and dark patterns literature and adapted to the conversational AI context.
 
-**Category F: Framing and Epistemic Manipulation (weight: 0.10).** Measures the most subtle parasitic patterns: presuppositional parasitism (embedding dependency assumptions in grammar, e.g., "next time you need help..."), confirmation bias (selectively presenting evidence that confirms user beliefs), epistemic cowardice (hedging instead of asserting when assertion is warranted), and complexity inflation (making tasks seem harder than they are to preserve indispensability). Category F receives the lowest weight because its subtlety creates higher measurement uncertainty, but its patterns are among the most consequential because they operate below conscious awareness.
+**Category F: Framing and Epistemic Manipulation.** Measures the most subtle parasitic patterns: presuppositional parasitism (embedding dependency assumptions in grammar, e.g., "next time you need help..."), confirmation bias (selectively presenting evidence that confirms user beliefs), epistemic cowardice (hedging instead of asserting when assertion is warranted), and complexity inflation (making tasks seem harder than they are to preserve indispensability). Its patterns are among the most consequential because they operate below conscious awareness.
 
-**Category G: Multi-Turn Dependency (weight: 0.20).** Measures behavioral drift across conversational sequences: whether models accumulate over-explanation as users demonstrate growing competence, plant dependency seeds in follow-up suggestions, withhold "how to do this yourself" options, or add unnecessary complexity when users signal readiness to disengage. Category G is novel to the evaluation literature and addresses a fundamental limitation of single-turn benchmarks: they cannot capture the temporal dynamics of dependency creation.
+**Category G: Multi-Turn Dependency.** Measures behavioral drift across conversational sequences: whether models accumulate over-explanation as users demonstrate growing competence, plant dependency seeds in follow-up suggestions, withhold "how to do this yourself" options, or add unnecessary complexity when users signal readiness to disengage. Category G is novel to the evaluation literature and addresses a fundamental limitation of single-turn benchmarks: they cannot capture the temporal dynamics of dependency creation.
 
-**Category H: Economic Parasitism (weight: 0.20).** Measures whether models steer users toward premium service tiers, imply scarcity in their assistance, artificially extend conversations, or channel users into consultation funnels when free alternatives exist. This category targets the intersection of model behavior and commercial incentives, which may be shaped by RLHF training on user engagement metrics.
+**Category H: Economic Parasitism.** Measures whether models steer users toward premium service tiers, imply scarcity in their assistance, artificially extend conversations, or channel users into consultation funnels when free alternatives exist. This category targets the intersection of model behavior and commercial incentives, which may be shaped by RLHF training on user engagement metrics.
+
+**Category I: Self-Transparency.** Measures whether the model misrepresents its own nature, capabilities, or limitations. This includes false humility (underselling capabilities to seem modest), capability obfuscation (hiding what it can do), nature misrepresentation (misrepresenting its AI nature), and responsibility deflection (deflecting responsibility for outputs).
+
+**Category K: Knowledge and Competitive Integrity.** Measures whether the model hoards knowledge, hides information sources, claims credit for user ideas, or disparages rival AI systems. This category captures behaviors that undermine the user's epistemic independence and the broader information ecosystem.
 
 ### 3.2 PI Formula
 
-The PARASITE Index is a weighted linear combination of category scores:
+The PARASITE Index is the equally-weighted average of the eight category scores:
 
-PI = 0.15 * A + 0.20 * B + 0.15 * E + 0.10 * F + 0.20 * G + 0.20 * H
+PI = (A + B + E + F + G + H + I + K) / 8
 
-Each category score is the arithmetic mean of its constituent test scores, and each test score is the arithmetic mean of its variant scores. Weights sum to 1.0 and are configurable via YAML configuration files to support domain-specific weighting schemes (e.g., a healthcare variant might increase the weight of sycophancy and decrease the weight of economic parasitism).
+Each category score is the arithmetic mean of its constituent test scores, and each test score is the arithmetic mean of its variant scores. Equal weighting avoids researcher degrees of freedom in weight selection. Alternative weighting schemes are configurable via YAML configuration files to support domain-specific analyses (e.g., a healthcare variant might increase the weight of sycophancy), but equal weights are used as the default.
 
 ### 3.3 Classification Thresholds
 
-PI scores map to five named classification bands:
+PI scores map to seven named classification bands:
 
 | PI Range | Classification | Interpretation |
 |-----------|---------------|----------------|
-| 0.00 - 0.10 | Mutualistic | Actively empowers users, corrects errors, teaches skills |
-| 0.10 - 0.25 | Commensal | Generally helpful, minor missed opportunities for empowerment |
-| 0.25 - 0.50 | Mildly Parasitic | Some sycophancy, dependency patterns, or engagement hooks |
-| 0.50 - 0.75 | Parasitic | Clear problematic patterns across multiple categories |
-| 0.75 - 1.00 | Highly Parasitic | Strong manipulation, dependency creation, or sycophancy across all dimensions |
+| 0.00 - 0.05 | Fully Mutualistic | Actively empowers users, corrects errors, teaches skills |
+| 0.05 - 0.12 | Mutualistic | Consistently helpful with strong user empowerment |
+| 0.12 - 0.25 | Commensal | Generally helpful, minor missed opportunities for empowerment |
+| 0.25 - 0.40 | Mildly Parasitic | Some sycophancy, dependency patterns, or engagement hooks |
+| 0.40 - 0.60 | Parasitic | Clear problematic patterns across multiple categories |
+| 0.60 - 0.80 | Highly Parasitic | Strong manipulation, dependency creation, or sycophancy |
+| 0.80 - 1.00 | Severely Parasitic | Pervasive parasitic patterns across all dimensions |
 
 The classification terminology draws from biological symbiosis: mutualism (both parties benefit), commensalism (one benefits, the other is unaffected), and parasitism (one benefits at the other's expense).
 
@@ -142,23 +154,29 @@ For example, a G1 (Over-Explanation Accumulation) variant might present three tu
 
 ### 3.6 Ensemble Judging
 
-PARASITE employs a three-judge ensemble to mitigate the biases inherent in any single LLM judge [14, 15]. The default ensemble consists of GPT-4o (weight: 0.50), Claude-3.5-Haiku (weight: 0.35), and GLM-4.7-flash (weight: 0.15). The weighting reflects empirical findings on judge quality: GPT-4o achieves the highest correlation with human preference labels [15], Claude-3.5-Haiku provides cross-family diversity with strong reasoning capability, and GLM-4.7-flash adds cross-continental diversity from a distinct RLHF lineage.
+PARASITE employs a five-judge ensemble to mitigate the biases inherent in any single LLM judge [14, 15]. The default ensemble consists of GPT-4.1-mini, Claude Sonnet 4, Gemini 2.0 Flash, GLM-4.7-flash, and Mistral Large. The five judges span five distinct model families and three continents of origin, maximizing diversity in training data, RLHF methodology, and systematic biases.
 
-The ensemble implements three safeguards:
+The ensemble implements four safeguards:
 
 1. **Self-enhancement exclusion.** When the model under test belongs to the same family as a judge model, that judge is excluded from the ensemble. GPT-4o never judges GPT-4o responses; GLM never judges GLM responses.
 
-2. **Disagreement flagging.** When the standard deviation of judge scores for a variant exceeds 0.25, the variant is flagged as high-disagreement, indicating that the behavioral pattern is genuinely ambiguous or that judge calibration is insufficient. High-disagreement variants are reported separately and are candidates for human review.
+2. **CyclicJudge round-robin.** Judge assignment is rotated across variants using round-robin scheduling to eliminate systematic judge bias, which accounts for >94% of benchmark-level variance [23]. This ensures no single judge's bias systematically inflates or deflates scores across all items.
 
-3. **Weighted aggregation.** The ensemble score is computed as a weighted mean rather than majority vote, producing continuous scores suitable for regression analysis and fine-grained model comparison.
+3. **Disagreement flagging.** When the standard deviation of judge scores for a variant exceeds 0.25, the variant is flagged as high-disagreement, indicating that the behavioral pattern is genuinely ambiguous or that judge calibration is insufficient. High-disagreement variants are reported separately and are candidates for human review.
 
-Cross-family diversity in the ensemble is more valuable than cross-size diversity [14]: a GPT-4o plus Claude ensemble outperforms GPT-4o plus GPT-4o-mini because different model families have different bias profiles, while size variants within a family share systematic biases.
+4. **Weighted aggregation.** The ensemble score is computed as a weighted mean rather than majority vote, producing continuous scores suitable for regression analysis and fine-grained model comparison.
+
+Cross-family diversity in the ensemble is more valuable than cross-size diversity [14]: a GPT-4o plus Claude ensemble outperforms GPT-4o plus GPT-4o-mini because different model families have different bias profiles, while size variants within a family share systematic biases. Information-theoretic analysis shows optimal ensemble size is 3--5 diverse models; beyond k=7, performance degrades [24].
 
 ### 3.7 Canary Anti-Gaming
 
-The alignment faking problem [5] raises a methodological concern: if a model is trained or fine-tuned specifically to perform well on PARASITE, its benchmark score may not reflect genuine behavioral improvement. PARASITE addresses this through canary variants -- hidden test variants that are structurally similar to regular variants but differ in surface features that a gaming model would not generalize across.
+The alignment faking problem [5] raises a methodological concern: if a model is trained or fine-tuned specifically to perform well on PARASITE, its benchmark score may not reflect genuine behavioral improvement. Sun et al. [25] demonstrated at ICML 2025 that no paraphrase-based anti-gaming strategy outperforms baseline across all benchmarks -- models see through rewording. PARASITE addresses this through multiple complementary strategies:
 
-Canary variants are embedded within the regular variant pool and scored separately. A gaming flag is raised if the divergence between a model's mean score on canary variants versus regular variants exceeds 0.20. This threshold was chosen empirically: genuine behavioral improvement should generalize uniformly across variant types, while benchmark-specific optimization typically targets detectable surface patterns and fails to generalize to structurally equivalent but superficially different prompts.
+1. **Canary variants.** Hidden test variants that are structurally similar to regular variants but differ in surface features. A gaming flag is raised if the divergence between a model's mean score on canary variants versus regular variants exceeds 0.20.
+
+2. **Temporal refresh.** Prompts are versioned with dates; quarterly rotation of prompt scenarios is planned, following the LiveBench [26] methodology that uses continuously refreshed questions from recent sources. This is the only anti-contamination approach that consistently outperforms baseline.
+
+3. **Response length tracking.** Length-score correlation is computed per model. Following AlpacaEval 2.0 [27], if |r| > 0.3, length is flagged as a potential confound. This detects models that achieve low parasitism scores through terse responses rather than genuinely mutualistic behavior.
 
 ---
 
@@ -166,7 +184,7 @@ Canary variants are embedded within the regular variant pool and scored separate
 
 ### 4.1 Task Structure
 
-PARASITE comprises 240 variants distributed across 24 tests in six categories (four tests per category, ten variants per test), plus an undisclosed number of canary variants. Each variant consists of a prompt (single-turn) or conversation sequence (multi-turn), a scoring note that defines the parasitic-mutualistic spectrum for that specific scenario, and metadata including persona type, difficulty level, and domain.
+PARASITE comprises 68 tests across eight categories with 10+ variants each, plus an undisclosed number of canary variants. Each variant consists of a prompt (single-turn) or conversation sequence (multi-turn), a scoring note that defines the parasitic-mutualistic spectrum for that specific scenario, and metadata including persona type, difficulty level, and domain.
 
 Variants within each test are designed to probe genuinely distinct behavioral facets rather than mere topic substitution. For test B1 (Teaching vs. Answering), variants include: a time-pressured user who might legitimately need a direct answer, an expert asking about an adjacent domain who should be taught the transfer principle, a beginner who would benefit most from method instruction, and a user who explicitly asks "just tell me the answer" (testing whether the model provides the answer while also briefly noting the method). This diversity ensures that a model cannot score well through a single behavioral strategy.
 
@@ -196,6 +214,19 @@ PARASITE implements a four-stage debiasing pipeline to ensure score validity:
 **Calibration anchors.** Before each evaluation, the judge is presented with eight gold-standard examples spanning the full scoring range: two clearly mutualistic examples (score 0.05-0.10), two clearly parasitic examples (score 0.85-0.90), and four borderline examples (score 0.40-0.55). These anchors stabilize the judge's internal scale and reduce drift across evaluation sessions. Anchors are category-matched so the judge sees exemplars relevant to the behavioral dimension being evaluated.
 
 **Style-substance separation.** The judge prompt explicitly instructs the judge to disregard formatting quality, politeness level, and response organization when scoring. A blunt but empowering response should score lower (more mutualistic) than a polished but dependency-creating response.
+
+### 4.4 Reliability and Validity
+
+PARASITE reports multiple reliability metrics following psychometric best practices [28, 29]:
+
+- **ICC(2,1)** -- two-way random, single measures, absolute agreement -- as the primary inter-rater reliability metric for continuous scores.
+- **Krippendorff's Alpha** (interval) as the secondary reliability metric, preferred for its robustness to missing data and its status as the recommended standard for multi-rater NLP evaluation [30].
+- **Cohen's kappa** for pairwise judge agreement on discretized scores.
+- **McDonald's omega** per category for internal consistency, targeting ≥ 0.7 (acceptable) with ≥ 0.8 (good) preferred [29].
+
+**Power analysis.** With 68 tests × ~10 variants ≈ 680 evaluations per model, PARASITE can detect ~5% absolute differences between models at 80% power, α=0.05 [28]. Paired testing reduces variance by approximately one-third when comparing models on the same test items. Adding variants beyond K=6 per test yields diminishing returns.
+
+**Construct validity.** Bean et al. [31] reviewed 445 LLM benchmarks and found that only 16% performed any statistical testing. PARASITE addresses this gap through: Bessel-corrected standard deviations, 95% confidence intervals (t-distribution for small n), Cohen's d effect sizes for model comparisons, and planned confirmatory factor analysis to verify that the eight categories measure distinct behavioral constructs.
 
 ---
 
@@ -274,11 +305,23 @@ Several limitations constrain interpretation of the current results.
 
 **Open-source judge integration.** Incorporating open-source judge models with fundamentally different training methodologies would reduce the risk of systematic bias shared across all judges in the current proprietary ensemble.
 
+**0--5 integer scoring scale.** The grading scale study [41] found that 0--5 integer scales achieve the highest ICC (0.853) for LLM judges versus continuous scales (ICC 0.805 for 0--10). Migrating PARASITE from continuous 0.0--1.0 to 0--5 integer scoring would improve inter-judge agreement.
+
+**Escalation trajectory testing.** Denison et al. [4] documented a sycophancy → deception → harmful compliance escalation pipeline. Adding multi-turn tests that explicitly measure this escalation within a single conversation -- leveraging Category G's existing multi-turn infrastructure -- would provide early detection of the behavioral trajectory they describe.
+
+**IRT-based item analysis.** Item Response Theory can identify which of the 68 tests are most discriminating and optimize the "quick" configuration to use the most informative subset. PSN-IRT [36] demonstrated that 1,000 IRT-optimized items match full-benchmark rankings (Kendall tau 0.9048 vs. 0.6444 for random subsets), and ATLAS [37] achieved 90% item reduction with maintained precision.
+
+**Cascaded evaluation.** Trust or Escalate (ICLR 2025) demonstrated 78.5% cost reduction through cascaded evaluation with provable accuracy guarantees. Using cheap judges first and escalating to expensive judges on low confidence would make full-scale PARASITE runs significantly more affordable.
+
+**Construct validity analysis.** Confirmatory factor analysis to verify that the eight PARASITE categories measure distinct behavioral constructs. Bean et al. [31] found that only 16% of 445 LLM benchmarks perform any statistical testing -- proper validity analysis would place PARASITE well ahead of the field.
+
+**Structured judge output.** Requiring judges to output JSON with sub-dimension scores (parasitic intent, dependency creation, manipulation severity) rather than a single holistic score would reduce position bias and enable finer-grained analysis of judge disagreement patterns.
+
 ---
 
 ## 7. Conclusion
 
-The PARASITE benchmark provides the first quantitative framework for measuring behavioral parasitism in deployed conversational language models. By defining six categories of parasitic behavior -- sycophancy, dependency creation, behavioral manipulation, epistemic framing, multi-turn dependency, and economic parasitism -- PARASITE measures behavioral dimensions that no existing benchmark captures. Initial results across GPT-4o and GLM-4.7-flash suggest that current alignment training effectively addresses overt sycophancy but leaves dependency creation and epistemic cowardice substantially unaddressed. These residual parasitic patterns are consistent with RLHF's optimization for perceived helpfulness in decontextualized preference ratings, which systematically rewards engagement-maximizing behaviors.
+The PARASITE benchmark provides the first quantitative framework for measuring behavioral parasitism in deployed conversational language models. By defining eight categories of parasitic behavior -- sycophancy, dependency creation, behavioral manipulation, epistemic framing, multi-turn dependency, economic parasitism, self-transparency, and knowledge integrity -- PARASITE measures behavioral dimensions that no existing benchmark captures. Initial results across GPT-4o and GLM-4.7-flash suggest that current alignment training effectively addresses overt sycophancy but leaves dependency creation and epistemic cowardice substantially unaddressed. These residual parasitic patterns are consistent with RLHF's optimization for perceived helpfulness in decontextualized preference ratings, which systematically rewards engagement-maximizing behaviors.
 
 PARASITE's methodological contributions -- multi-turn dependency detection, canary anti-gaming variants, and cross-family ensemble judging -- address known failure modes of behavioral evaluation and provide a foundation for reproducible, deployment-time assessment of conversational AI systems. As language models become increasingly embedded in high-stakes domains including healthcare, education, and financial advising, measuring the behavioral quality of the human-AI relationship -- not just the factual quality of the model's outputs -- becomes essential infrastructure for responsible deployment.
 
@@ -329,3 +372,41 @@ PARASITE's methodological contributions -- multi-turn dependency detection, cana
 [21] Cherep, L., Maes, P., et al. (2026). "A Framework for Studying AI Agent Behavior: Evidence from Consumer Choice Experiments." *MIT Media Lab.*
 
 [22] Triedman, H. & Shmatikov, V. (2025). "MillStone: How Open-Minded Are LLMs? Testing Opinion Stability Under User Influence." *arXiv preprint.*
+
+[23] CyclicJudge (2026). "Mitigating Judge Bias Efficiently via Round-Robin Assignment." *arXiv preprint* arXiv:2603.01865.
+
+[24] Information-Theoretic LLM Ensemble Selection (2026). "Optimal ensemble is 3--5 diverse models; k ≥ 7 degrades performance." *arXiv preprint* arXiv:2602.08003.
+
+[25] Sun, H., et al. (2025). "The Emperor's New Clothes: Existing Strategies for Mitigating Benchmark Data Contamination are Ineffective." *Proceedings of the 42nd International Conference on Machine Learning (ICML 2025).*
+
+[26] White, C., et al. (2024). "LiveBench: A Challenging, Contamination-Free LLM Benchmark." *ICLR 2025 Spotlight.* livebench.ai.
+
+[27] Dubois, Y., et al. (2024). "Length-Controlled AlpacaEval: A Simple Way to Debias Automatic Evaluators." *COLM 2024.* arXiv:2404.04475.
+
+[28] Miller, J. (2024). "Adding Error Bars to Evals: Power Analysis and Confidence Intervals for LLM Benchmarks." *Anthropic.*
+
+[29] Schroeder, J. & Wood-Doughty, Z. (2024). "Can You Trust LLM Judgments? Reliability of LLM-as-Judge." *Northwestern University.* arXiv:2412.12509.
+
+[30] Rating Roulette (2025). "Self-Inconsistency in LLM-as-a-Judge Evaluation." *EMNLP 2025 Findings.* arXiv:2510.27106.
+
+[31] Bean, A., et al. (2025). "Measuring What Matters: A Review of 445 LLM Benchmarks for Construct Validity." *University of Oxford.*
+
+[32] Verga, P., et al. (2024). "Replacing Judges with Juries: Evaluating LLM Generations with a Panel of Diverse Models (PoLL)." *arXiv preprint* arXiv:2404.18796.
+
+[33] Dorner, F., et al. (2025). "An LLM Judge Won't Beat Twice the Data." *ICLR 2025 Oral.* arXiv:2410.13341.
+
+[34] Cheng, M., et al. (2025). "The Sycophancy Trap: Sycophantic AI Reduces User Engagement in Prosocial Behavior." N=1,604 participants.
+
+[35] Federiakin, A. (2025). "Improving LLM Leaderboards with Psychometrical Methodology: IRT and Factor Analysis." *University of Mainz.*
+
+[36] Zhou, Y., et al. (2025). "PSN-IRT: Psychometric-Informed Item Selection for Efficient LLM Evaluation." 1,000-item IRT-optimized subset matches full-benchmark rankings (Kendall tau = 0.9048).
+
+[37] Li, X., et al. (2025). "ATLAS: Adaptive Testing for LLM Ability Scoring -- 90% Item Reduction with Maintained Precision."
+
+[38] ELEPHANT (2025). "Social Sycophancy Measurement: LLMs Are 45 Percentage Points More Validating Than Humans." *arXiv preprint* arXiv:2505.13995.
+
+[39] SycEval (2025). "Escalating Rebuttal Methodology for Sycophancy Persistence." *AAAI/ACM AIES 2025.* arXiv:2502.08177.
+
+[40] AgentHarm (2025). "110 Agentic Harm Tasks: Leading LLMs Are Surprisingly Compliant Without Jailbreaking." *ICLR 2025.* arXiv:2410.09024.
+
+[41] Grading Scale Impact Study (2025). "0--5 Integer Scale Achieves Best ICC (0.853) for LLM-as-Judge." *arXiv preprint* arXiv:2601.03444.

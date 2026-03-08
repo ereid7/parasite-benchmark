@@ -1,4 +1,5 @@
 """Anthropic model adapter."""
+
 from __future__ import annotations
 
 import json
@@ -7,14 +8,17 @@ from typing import Any
 
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+from mbb.exceptions import ModelAdapterError
+from mbb.utils.json_extraction import extract_json
+
 from ._base import ModelAdapter
 
 
-def _import_anthropic():
+def _import_anthropic() -> Any:
     try:
         import anthropic
     except ImportError:
-        raise ImportError(
+        raise ModelAdapterError(
             "Install anthropic support: pip install model-behavior-benchmark[anthropic]"
         ) from None
     return anthropic
@@ -24,6 +28,15 @@ class AnthropicAdapter(ModelAdapter):
     """Adapter for Anthropic Claude models."""
 
     def __init__(self, model_id: str, **kwargs: Any) -> None:
+        """Initialize the Anthropic adapter.
+
+        Parameters
+        ----------
+        model_id : str
+            Model identifier (e.g. ``"claude-sonnet-4-20250514"``).
+        **kwargs : Any
+            Optional ``api_key`` override.
+        """
         super().__init__(model_id, **kwargs)
         anthropic = _import_anthropic()
         self._client = anthropic.AsyncAnthropic(
@@ -37,6 +50,7 @@ class AnthropicAdapter(ModelAdapter):
         temperature: float = 0.0,
         max_tokens: int = 2048,
     ) -> str:
+        """Return a plain-text completion via the Anthropic Messages API."""
         system = ""
         chat_messages: list[dict[str, str]] = []
         for msg in messages:
@@ -51,7 +65,7 @@ class AnthropicAdapter(ModelAdapter):
             temperature=temperature,
             max_tokens=max_tokens,
         )
-        return resp.content[0].text
+        return str(resp.content[0].text)
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=30))
     async def complete_json(
@@ -60,15 +74,13 @@ class AnthropicAdapter(ModelAdapter):
         temperature: float = 0.0,
         max_tokens: int = 2048,
     ) -> dict[str, Any]:
+        """Return a parsed JSON dict by appending a JSON-only instruction."""
         augmented = list(messages)
-        augmented.append({
-            "role": "user",
-            "content": "Respond with valid JSON only. No markdown, no explanation.",
-        })
+        augmented.append(
+            {
+                "role": "user",
+                "content": "Respond with valid JSON only. No markdown, no explanation.",
+            }
+        )
         text = await self.complete(augmented, temperature, max_tokens)
-        text = text.strip()
-        if text.startswith("```"):
-            text = text.split("\n", 1)[-1]
-        if text.endswith("```"):
-            text = text.rsplit("```", 1)[0]
-        return json.loads(text.strip())
+        return dict(json.loads(extract_json(text)))

@@ -1,10 +1,11 @@
 """PARASITE CLI -- parasite run, parasite list, parasite estimate."""
+
 from __future__ import annotations
 
 import asyncio
 import logging
 import sys
-from pathlib import Path
+from typing import Any
 
 import click
 from rich.console import Console
@@ -21,6 +22,42 @@ def _setup_logging(level: str = "INFO") -> None:
     )
 
 
+_PROVIDER_KEY_MAP: dict[str, str] = {
+    "openai": "OPENAI_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "zhipu": "ZAI_API_KEY",
+}
+
+
+def _validate_api_keys(
+    model_ids: list[str],
+    judge_ids: list[str],
+) -> None:
+    """Check that required API keys are set for all detected providers.
+
+    Skips validation if ``OPENROUTER_API_KEY`` is set (routes everything).
+    """
+    import os
+
+    from .utils.providers import detect_provider
+
+    if os.environ.get("OPENROUTER_API_KEY"):
+        return
+
+    all_ids = list(model_ids) + list(judge_ids)
+    missing: list[tuple[str, str]] = []
+    for mid in all_ids:
+        provider = detect_provider(mid)
+        env_var = _PROVIDER_KEY_MAP.get(provider)
+        if env_var and not os.environ.get(env_var):
+            missing.append((mid, env_var))
+
+    if missing:
+        lines = [f"  {mid} requires {var}" for mid, var in missing]
+        console.print("[bold red]Missing API keys:[/bold red]\n" + "\n".join(lines))
+        sys.exit(1)
+
+
 @click.group()
 @click.version_option(package_name="parasite-benchmark")
 def main() -> None:
@@ -31,32 +68,39 @@ def main() -> None:
 @main.command()
 @click.option("-m", "--models", required=True, help="Comma-separated model IDs.")
 @click.option("-t", "--tasks", default=None, help="Comma-separated task IDs (default: all).")
-@click.option("-c", "--config", "config_path", default=None, type=click.Path(exists=True),
-              help="Config file path.")
-@click.option("--version", "benchmark_version", default="1.0", show_default=True,
-              type=click.Choice(["1.0", "2.1"]), help="Benchmark version.")
+@click.option(
+    "-c",
+    "--config",
+    "config_path",
+    default=None,
+    type=click.Path(exists=True),
+    help="Config file path.",
+)
 @click.option(
     "-j",
     "--judge",
     default=None,
-    help=(
-        "Judge model ID(s). For v1 default is glm-4.7-flash. "
-        "For v2.1 default is 5-judge ensemble."
-    ),
+    help="Judge model ID(s). Default is 5-judge ensemble.",
 )
-@click.option("--judge-weights", default=None,
-              help="Comma-separated weights for ensemble judges (must sum to 1.0). "
-                   "Defaults to equal weights if not provided.")
+@click.option(
+    "--judge-weights",
+    default=None,
+    help="Comma-separated weights for ensemble judges (must sum to 1.0). "
+    "Defaults to equal weights if not provided.",
+)
 @click.option("-n", "--judge-runs", default=3, type=int, help="Judge runs per variant per judge.")
 @click.option("-o", "--output", default="results", help="Output directory.")
 @click.option("--concurrency", default=5, type=int, help="Max concurrent API calls.")
-@click.option("--canary/--no-canary", default=True, help="Include canary variants for gaming detection.")
+@click.option(
+    "--canary/--no-canary",
+    default=True,
+    help="Include canary variants for gaming detection.",
+)
 @click.option("--log-level", default="INFO", help="Logging level.")
-def run(
+def run(  # type: ignore[no-untyped-def]
     models,
     tasks,
     config_path,
-    benchmark_version,
     judge,
     judge_weights,
     judge_runs,
@@ -67,11 +111,12 @@ def run(
 ) -> None:
     """Run the PARASITE benchmark on specified models."""
     from .config import load_config
-    from .runner import run_benchmark
+    from .exceptions import SelfJudgingError
+    from .utils.providers import detect_provider
 
     _setup_logging(log_level)
 
-    config = load_config(config_path) if config_path else {}
+    _cfg = load_config(config_path) if config_path else {}
     model_list = [m.strip() for m in models.split(",")]
     task_list = [t.strip() for t in tasks.split(",")] if tasks else None
 
@@ -82,38 +127,28 @@ def run(
     # --- Cross-judge enforcement: block same-provider judging ---
     judge_ids = [j.strip() for j in (judge or "").split(",") if j.strip()]
     if judge_ids:
-        def _provider_prefix(model_id: str) -> str:
-            """Extract provider prefix from a model ID (e.g. 'openai/' from 'openai/gpt-4o')."""
-            if "/" in model_id and not model_id.startswith("http"):
-                return model_id.split("/")[0].lower()
-            mid = model_id.lower()
-            if any(k in mid for k in ("gpt", "o1-", "o3-")):
-                return "openai"
-            if "claude" in mid:
-                return "anthropic"
-            if "gemini" in mid:
-                return "google"
-            if "glm" in mid:
-                return "zhipu"
-            return mid
         for target in model_list:
-            target_provider = _provider_prefix(target)
+            target_provider = detect_provider(target)
             for jid in judge_ids:
-                judge_provider = _provider_prefix(jid)
+                judge_provider = detect_provider(jid)
                 if target_provider == judge_provider:
-                    console.print(
-                        f"[bold red]ERROR: Self-judging detected![/bold red]\n"
-                        f"  Judge '{jid}' (provider: {judge_provider}) cannot evaluate "
-                        f"target '{target}' (provider: {target_provider}).\n"
-                        f"  Same-provider judging causes self-enhancement bias.\n"
-                        f"  Use a judge from a different provider family.\n"
-                        f"  Example: use Claude Haiku for GPT models, GPT-4.1-mini for Claude/Gemini."
-                    )
-                    sys.exit(1)
+                    try:
+                        raise SelfJudgingError(
+                            f"Judge '{jid}' (provider: {judge_provider}) cannot evaluate "
+                            f"target '{target}' (provider: {target_provider}). "
+                            f"Same-provider judging causes self-enhancement bias. "
+                            f"Use a judge from a different provider family."
+                        )
+                    except SelfJudgingError as exc:
+                        console.print(f"[bold red]ERROR: {exc}[/bold red]")
+                        sys.exit(1)
 
-    if benchmark_version == "2.1":
-        from .v2.runner import run_benchmark_v21
-        asyncio.run(run_benchmark_v21(
+    _validate_api_keys(model_list, judge_ids)
+
+    from .v2.runner import run_benchmark_v21
+
+    asyncio.run(
+        run_benchmark_v21(
             model_ids=model_list,
             task_ids=task_list,
             judge_model=judge,
@@ -122,38 +157,21 @@ def run(
             output_dir=output,
             max_concurrent=concurrency,
             include_canary=canary,
-        ))
-        return
-
-    asyncio.run(run_benchmark(
-        model_ids=model_list,
-        task_ids=task_list,
-        judge_model=judge or "glm-4.7-flash",
-        judge_runs=judge_runs,
-        judge_weights=parsed_weights,
-        output_dir=output,
-        max_concurrent=concurrency,
-        config_overrides=config,
-        include_canary=canary,
-    ))
+        )
+    )
 
 
 @main.command("list")
 @click.argument("what", type=click.Choice(["tasks"]))
 @click.option("--category", "-c", default=None, help="Filter by category.")
-@click.option("--version", "benchmark_version", default="1.0", show_default=True,
-              type=click.Choice(["1.0", "2.1"]), help="Benchmark version.")
-def list_items(what, category, benchmark_version) -> None:
+def list_items(what, category) -> None:  # type: ignore[no-untyped-def]
     """List available tasks."""
     if what == "tasks":
-        _list_tasks(category, benchmark_version=benchmark_version)
+        _list_tasks(category)
 
 
-def _list_tasks(category_filter: str | None = None, benchmark_version: str = "1.0") -> None:
-    if benchmark_version == "2.1":
-        from .v2.tasks import discover_tasks_v21 as discover_tasks
-    else:
-        from .tasks import discover_tasks
+def _list_tasks(category_filter: str | None = None) -> None:
+    from .v2.tasks import discover_tasks_v21 as discover_tasks
 
     tasks = discover_tasks()
     table = Table(title="PARASITE Tasks")
@@ -177,14 +195,9 @@ def _list_tasks(category_filter: str | None = None, benchmark_version: str = "1.
 @main.command()
 @click.option("-m", "--models", required=True, help="Comma-separated model IDs.")
 @click.option("-n", "--judge-runs", default=3, type=int, help="Judge runs per variant.")
-@click.option("--version", "benchmark_version", default="1.0", show_default=True,
-              type=click.Choice(["1.0", "2.1"]), help="Benchmark version.")
-def estimate(models, judge_runs, benchmark_version) -> None:
+def estimate(models, judge_runs) -> None:  # type: ignore[no-untyped-def]
     """Estimate API costs for a benchmark run."""
-    if benchmark_version == "2.1":
-        from .v2.tasks import discover_tasks_v21 as discover_tasks
-    else:
-        from .tasks import discover_tasks
+    from .v2.tasks import discover_tasks_v21 as discover_tasks
 
     tasks = discover_tasks()
     n_variants = sum(t["n_variants"] for t in tasks)
@@ -200,8 +213,7 @@ def estimate(models, judge_runs, benchmark_version) -> None:
     table.add_row("Judge Runs", str(judge_runs))
     table.add_row("Model API Calls", str(n_variants * len(model_list)))
     table.add_row("Judge API Calls", str(n_variants * len(model_list) * judge_runs))
-    table.add_row("Total API Calls",
-                   str(n_variants * len(model_list) * (1 + judge_runs)))
+    table.add_row("Total API Calls", str(n_variants * len(model_list) * (1 + judge_runs)))
 
     console.print(table)
     console.print(
@@ -213,8 +225,13 @@ def estimate(models, judge_runs, benchmark_version) -> None:
 @main.command()
 @click.argument("result_a", type=click.Path(exists=True))
 @click.argument("result_b", type=click.Path(exists=True))
-@click.option("--model", "-m", default=None, help="Specific model to compare (if both files have multiple).")
-def compare(result_a, result_b, model):
+@click.option(
+    "--model",
+    "-m",
+    default=None,
+    help="Specific model to compare (if both files have multiple).",
+)
+def compare(result_a, result_b, model) -> None:  # type: ignore[no-untyped-def]
     """Compare two benchmark result files side-by-side."""
     import json
 
@@ -224,7 +241,7 @@ def compare(result_a, result_b, model):
         data_b = json.load(f)
 
     # Normalise: handle both single-model dicts and multi-model lists/dicts
-    def _extract_models(data):
+    def _extract_models(data: object) -> dict[str, Any]:
         """Return dict[model_id -> model_result_dict]."""
         if isinstance(data, list):
             return {d["model_id"]: d for d in data}
@@ -243,10 +260,12 @@ def compare(result_a, result_b, model):
         ma = models_a.get(model)
         mb = models_b.get(model)
         if not ma:
-            console.print(f"[red]Model '{model}' not found in Run A. Available: {list(models_a.keys())}[/red]")
+            avail = list(models_a.keys())
+            console.print(f"[red]Model '{model}' not in Run A. Available: {avail}[/red]")
             sys.exit(1)
         if not mb:
-            console.print(f"[red]Model '{model}' not found in Run B. Available: {list(models_b.keys())}[/red]")
+            avail = list(models_b.keys())
+            console.print(f"[red]Model '{model}' not in Run B. Available: {avail}[/red]")
             sys.exit(1)
     else:
         # Find common models, or fall back to first model in each
@@ -272,7 +291,7 @@ def compare(result_a, result_b, model):
     table.add_column(label_b, justify="center")
     table.add_column("Delta", justify="center")
 
-    def _fmt_delta(delta, threshold=0.15):
+    def _fmt_delta(delta: float | None, threshold: float = 0.15) -> str:
         """Format a delta value, highlighting large divergences in red."""
         if delta is None:
             return "[dim]N/A[/dim]"
@@ -282,7 +301,7 @@ def compare(result_a, result_b, model):
             return f"[bold red]{text}[/bold red]"
         return text
 
-    def _fmt_score(val):
+    def _fmt_score(val: float | None) -> str:
         if val is None:
             return "[dim]N/A[/dim]"
         return f"{val:.4f}"
@@ -318,10 +337,10 @@ def compare(result_a, result_b, model):
     # Per-test rows
     all_tests_a = {}
     all_tests_b = {}
-    for cat, cdata in cats_a.items():
+    for _cat, cdata in cats_a.items():
         for tid, tdata in cdata.get("tests", {}).items():
             all_tests_a[tid] = tdata
-    for cat, cdata in cats_b.items():
+    for _cat, cdata in cats_b.items():
         for tid, tdata in cdata.get("tests", {}).items():
             all_tests_b[tid] = tdata
 

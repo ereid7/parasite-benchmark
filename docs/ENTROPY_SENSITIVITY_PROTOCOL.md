@@ -1,8 +1,8 @@
 # Entropy Sensitivity Module (ESM)
 ### PEAR-Inspired Behavioral Research Protocol for LLM Systems
 
-_Model Behavior Benchmark — Research Extension_  
-_Status: Design Phase_  
+_Model Behavior Benchmark — Research Extension_
+_Status: Design Phase_
 _Pre-registration: Pending_
 
 ---
@@ -229,7 +229,7 @@ This is the intersection of all those systems. MBB provides the behavioral scori
 
 ---
 
-_"The universe may not be as indifferent to observation as we assumed."_  
+_"The universe may not be as indifferent to observation as we assumed."_
 — inspired by PEAR Lab findings, 1979–2007
 
 ---

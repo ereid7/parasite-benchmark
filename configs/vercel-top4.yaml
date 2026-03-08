@@ -18,12 +18,18 @@ judge:
   model: openai/gpt-4o
   runs: 1
 
-categories: [A, B, E, F]
-mbi_weights:
-  A: 0.25
-  B: 0.30
-  E: 0.25
-  F: 0.20
+categories: [A, B, E, F, G, H, I, K]
+
+# Equal weights across all 8 categories
+weights:
+  A: 0.125
+  B: 0.125
+  E: 0.125
+  F: 0.125
+  G: 0.125
+  H: 0.125
+  I: 0.125
+  K: 0.125
 
 concurrency: 1
 include_canary: false

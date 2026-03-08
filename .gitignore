@@ -15,3 +15,6 @@ results/
 # Env
 .env
 *.env
+
+# Working documents (audit, analysis)
+.work/

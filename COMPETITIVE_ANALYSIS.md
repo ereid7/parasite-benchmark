@@ -329,13 +329,13 @@ This is distinct from company-level PLI — it's the model itself steering econo
    HIGH        MACHIAVELLI                                              ┌── PARASITE ──┐
    SEVERITY    InstrumentalEval                                         │  (here) │
       │        Sycophancy→Subterfuge                                    └─────────┘
-      │                                                                    
+      │
       │                     AlignmentFaking
       │
    LOW         ──────────────────────────────────────────────────────── TruthfulQA
    SEVERITY                                                              Sharma2023
                                                                          HELM
-      
+
                 TRAINING-TIME                                          DEPLOYMENT
                 PHENOMENON                                             BENCHMARK
 ```

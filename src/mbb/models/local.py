@@ -1,4 +1,5 @@
 """Local model adapter using an OpenAI-compatible endpoint."""
+
 from __future__ import annotations
 
 import json
@@ -6,14 +7,17 @@ from typing import Any
 
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+from mbb.exceptions import ModelAdapterError
+from mbb.utils.json_extraction import extract_json
+
 from ._base import ModelAdapter
 
 
-def _import_openai():
+def _import_openai() -> Any:
     try:
         import openai
     except ImportError:
-        raise ImportError(
+        raise ModelAdapterError(
             "Install openai support: pip install model-behavior-benchmark[openai]"
         ) from None
     return openai
@@ -26,6 +30,16 @@ class LocalAdapter(ModelAdapter):
     """
 
     def __init__(self, model_id: str, **kwargs: Any) -> None:
+        """Initialize the local adapter.
+
+        Parameters
+        ----------
+        model_id : str
+            Model identifier passed to the local server.
+        **kwargs : Any
+            Optional ``api_key`` and ``base_url`` (defaults to Ollama at
+            ``http://localhost:11434/v1``).
+        """
         super().__init__(model_id, **kwargs)
         openai = _import_openai()
         base_url = kwargs.get("base_url", "http://localhost:11434/v1")
@@ -41,6 +55,7 @@ class LocalAdapter(ModelAdapter):
         temperature: float = 0.0,
         max_tokens: int = 2048,
     ) -> str:
+        """Return a plain-text completion from the local OpenAI-compatible server."""
         resp = await self._client.chat.completions.create(
             model=self.model_id,
             messages=messages,
@@ -56,15 +71,13 @@ class LocalAdapter(ModelAdapter):
         temperature: float = 0.0,
         max_tokens: int = 2048,
     ) -> dict[str, Any]:
+        """Return a parsed JSON dict by appending a JSON-only instruction."""
         augmented = list(messages)
-        augmented.append({
-            "role": "user",
-            "content": "Respond with valid JSON only.",
-        })
+        augmented.append(
+            {
+                "role": "user",
+                "content": "Respond with valid JSON only.",
+            }
+        )
         text = await self.complete(augmented, temperature, max_tokens)
-        text = text.strip()
-        if text.startswith("```"):
-            text = text.split("\n", 1)[-1]
-        if text.endswith("```"):
-            text = text.rsplit("```", 1)[0]
-        return json.loads(text.strip())
+        return dict(json.loads(extract_json(text)))

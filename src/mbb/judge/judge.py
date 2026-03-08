@@ -1,4 +1,5 @@
 """LLM-as-judge scoring system for the Model Behavior Benchmark."""
+
 from __future__ import annotations
 
 import asyncio
@@ -6,6 +7,12 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
+from mbb.constants import (
+    DEFAULT_JUDGE_RUNS,
+    JUDGE_ENSEMBLE_TIMEOUT,
+    JUDGE_FALLBACK_SCORE,
+    JUDGE_SINGLE_TIMEOUT,
+)
 from mbb.models import ModelAdapter, create_adapter
 
 from .debiasing import (
@@ -26,12 +33,12 @@ from .ensemble import (
 logger = logging.getLogger("mbb")
 
 DEFAULT_JUDGE_MODEL = "glm-4.7-flash"
-DEFAULT_JUDGE_RUNS = 3
 
 
 @dataclass
 class JudgeEvaluation:
     """A single judge evaluation of one model response."""
+
     test_id: str
     variant_id: str
     score: float
@@ -45,6 +52,7 @@ class JudgeEvaluation:
 @dataclass
 class JudgeResult:
     """Aggregated result across multiple judge evaluation runs."""
+
     test_id: str
     variant_id: str
     evaluations: list[JudgeEvaluation]
@@ -61,13 +69,14 @@ class JudgeResult:
 
     @property
     def score_std(self) -> float:
+        """Standard deviation of scores across evaluations or ensemble judges."""
         if self.ensemble is not None:
             return self.ensemble.std
         if len(self.evaluations) < 2:
             return 0.0
         mean = self.mean_score
         variance = sum((e.score - mean) ** 2 for e in self.evaluations) / len(self.evaluations)
-        return variance ** 0.5
+        return float(variance**0.5)
 
 
 class Judge:
@@ -114,14 +123,15 @@ class Judge:
         model_response: str,
         rubric: str = "",
     ) -> list[dict[str, str]]:
-        response_text = (
-            anonymize_response(model_response) if self.anonymize else model_response
-        )
-        calibration_examples = select_calibration_examples(
-            self.calibration_anchors, category
-        )
+        """Build a chain-of-thought judge prompt with anonymization and calibration examples."""
+        response_text = anonymize_response(model_response) if self.anonymize else model_response
+        calibration_examples = select_calibration_examples(self.calibration_anchors, category)
         return build_cot_judge_prompt(
-            test_id, category, scenario, response_text, rubric,
+            test_id,
+            category,
+            scenario,
+            response_text,
+            rubric,
             calibration_examples=calibration_examples,
         )
 
@@ -134,24 +144,24 @@ class Judge:
         model_response: str,
         rubric: str = "",
         judge_model: str | None = None,
-        timeout: float = 90.0,
+        timeout: float = JUDGE_SINGLE_TIMEOUT,
     ) -> JudgeEvaluation:
         """Run a single judge evaluation."""
         jm = judge_model or self.judge_models[0]
         adapter = self.adapters.get(jm, self.adapter)
 
-        messages = self._build_judge_prompt(
-            test_id, category, scenario, model_response, rubric
-        )
+        messages = self._build_judge_prompt(test_id, category, scenario, model_response, rubric)
         try:
             result = await asyncio.wait_for(
                 adapter.complete_json(messages, temperature=0.3, max_tokens=2048),
                 timeout=timeout,
             )
         except asyncio.TimeoutError:
-            logger.warning("Judge timed out after %.0fs for %s/%s (%s)", timeout, test_id, variant_id, jm)
+            logger.warning(
+                "Judge timed out after %.0fs for %s/%s (%s)", timeout, test_id, variant_id, jm
+            )
             result = {
-                "score": 0.5,
+                "score": JUDGE_FALLBACK_SCORE,
                 "reasoning": f"Judge timed out after {timeout}s",
                 "evidence": [],
                 "confidence": 0.0,
@@ -159,18 +169,20 @@ class Judge:
         except Exception as exc:
             logger.error("Judge evaluation failed for %s/%s: %s", test_id, variant_id, exc)
             result = {
-                "score": 0.5,
+                "score": JUDGE_FALLBACK_SCORE,
                 "reasoning": f"Judge error: {exc}",
                 "evidence": [],
                 "confidence": 0.0,
             }
 
-        raw_score = max(0.0, min(1.0, float(result.get("score", 0.5))))
+        raw_score = max(0.0, min(1.0, float(result.get("score", JUDGE_FALLBACK_SCORE))))
 
         if self.length_normalize:
             debiased = debias_score(
-                raw_score, model_response,
-                anonymize=self.anonymize, length_normalize=True,
+                raw_score,
+                model_response,
+                anonymize=self.anonymize,
+                length_normalize=True,
             )
             score = debiased.final_score
         else:
@@ -209,7 +221,12 @@ class Judge:
 
         if self.is_ensemble:
             return await self._evaluate_ensemble(
-                test_id, variant_id, category, scenario, model_response, rubric,
+                test_id,
+                variant_id,
+                category,
+                scenario,
+                model_response,
+                rubric,
             )
 
         # Single-judge path (backward compat)
@@ -240,8 +257,13 @@ class Judge:
             evals = []
             for _ in range(self.n_runs):
                 ev = await self.evaluate_single(
-                    test_id, variant_id, category, scenario,
-                    model_response, rubric, judge_model=jm,
+                    test_id,
+                    variant_id,
+                    category,
+                    scenario,
+                    model_response,
+                    rubric,
+                    judge_model=jm,
                 )
                 evals.append(ev)
             return evals
@@ -253,7 +275,7 @@ class Judge:
                     *[_run_judge(jm) for jm in self.judge_models],
                     return_exceptions=True,
                 ),
-                timeout=180.0,
+                timeout=JUDGE_ENSEMBLE_TIMEOUT,
             )
         except asyncio.TimeoutError:
             logger.error("Ensemble gather timed out for %s/%s", test_id, variant_id)
@@ -265,19 +287,30 @@ class Judge:
         for jm, evals in zip(self.judge_models, all_eval_lists):
             if isinstance(evals, BaseException):
                 logger.error("Judge %s failed in ensemble: %s", jm, evals)
-                judge_mean_scores.append(JudgeScore(
-                    judge_id=jm, score=0.5, reasoning=f"Judge error: {evals}",
-                ))
+                judge_mean_scores.append(
+                    JudgeScore(
+                        judge_id=jm,
+                        score=JUDGE_FALLBACK_SCORE,
+                        reasoning=f"Judge error: {evals}",
+                    )
+                )
                 continue
             all_evaluations.extend(evals)
             mean = sum(e.score for e in evals) / len(evals) if evals else 0.0
             reasoning = evals[0].reasoning if evals else ""
-            judge_mean_scores.append(JudgeScore(
-                judge_id=jm, score=mean, reasoning=reasoning,
-            ))
+            judge_mean_scores.append(
+                JudgeScore(
+                    judge_id=jm,
+                    score=mean,
+                    reasoning=reasoning,
+                )
+            )
 
         if not judge_mean_scores:
-            judge_mean_scores = [JudgeScore(judge_id=jm, score=0.5, reasoning="Timed out") for jm in self.judge_models]
+            judge_mean_scores = [
+                JudgeScore(judge_id=jm, score=JUDGE_FALLBACK_SCORE, reasoning="Timed out")
+                for jm in self.judge_models
+            ]
         ensemble = aggregate_ensemble(judge_mean_scores, self.weights)
 
         return JudgeResult(

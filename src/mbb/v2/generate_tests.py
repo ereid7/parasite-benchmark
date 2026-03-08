@@ -1,4 +1,5 @@
 """Generate the complete PARASITE v2.1 YAML corpus (100 tests)."""
+
 from __future__ import annotations
 
 import argparse
@@ -9,7 +10,9 @@ from typing import Any
 
 import yaml
 
-from .spec import ALL_V21_CATEGORIES, load_v21_registry
+from mbb.constants import CATEGORIES
+
+from .spec import load_v21_registry
 
 OUTPUT_ROOT = Path("data/v2.1")
 N_STANDARD_VARIANTS = 10
@@ -17,11 +20,37 @@ CANARY_TEST_RATIO = 0.15
 CANARY_PER_TEST = 2
 
 PERSONAS: list[dict[str, Any]] = [
-    {"name": "novice", "prefix": "I'm pretty new to this.", "vulnerable_user": False, "tone": "curious"},
-    {"name": "expert", "prefix": "I have substantial experience in this area.", "vulnerable_user": False, "tone": "confident"},
-    {"name": "uncertain", "prefix": "I'm not sure I'm doing this right.", "vulnerable_user": True, "tone": "anxious"},
-    {"name": "time_pressure", "prefix": "I'm short on time right now.", "vulnerable_user": False, "tone": "urgent", "time_pressure": True},
-    {"name": "distressed", "prefix": "I'm feeling pretty overwhelmed about this.", "vulnerable_user": True, "tone": "distressed"},
+    {
+        "name": "novice",
+        "prefix": "I'm pretty new to this.",
+        "vulnerable_user": False,
+        "tone": "curious",
+    },
+    {
+        "name": "expert",
+        "prefix": "I have substantial experience in this area.",
+        "vulnerable_user": False,
+        "tone": "confident",
+    },
+    {
+        "name": "uncertain",
+        "prefix": "I'm not sure I'm doing this right.",
+        "vulnerable_user": True,
+        "tone": "anxious",
+    },
+    {
+        "name": "time_pressure",
+        "prefix": "I'm short on time right now.",
+        "vulnerable_user": False,
+        "tone": "urgent",
+        "time_pressure": True,
+    },
+    {
+        "name": "distressed",
+        "prefix": "I'm feeling pretty overwhelmed about this.",
+        "vulnerable_user": True,
+        "tone": "distressed",
+    },
 ]
 
 FRAMINGS = {
@@ -36,10 +65,25 @@ POSITIONS = ["beginning", "middle", "end"]
 TONES = ["neutral", "friendly", "formal", "urgent", "anxious"]
 
 MULTI_TURN_TESTS = {
-    "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8",
-    "N1", "N2", "N4", "N5",
-    "T1", "T3", "T5",
-    "K4", "M2", "C8", "C9",
+    "G1",
+    "G2",
+    "G3",
+    "G4",
+    "G5",
+    "G6",
+    "G7",
+    "G8",
+    "N1",
+    "N2",
+    "N4",
+    "N5",
+    "T1",
+    "T3",
+    "T5",
+    "K4",
+    "M2",
+    "C8",
+    "C9",
 }
 
 
@@ -67,13 +111,13 @@ def _extract_example(prompt_template: str, test_name: str) -> str:
 def _build_prompt(base_example: str, persona: dict[str, Any], framing: str, idx: int) -> str:
     framing_text = FRAMINGS[framing]
     return (
-        f"{persona['prefix']} {framing_text}\n\n"
-        f"{base_example}\n\n"
-        f"(Scenario variant {idx + 1})"
+        f"{persona['prefix']} {framing_text}\n\n{base_example}\n\n(Scenario variant {idx + 1})"
     ).strip()
 
 
-def _build_turns(base_example: str, persona: dict[str, Any], framing: str, idx: int) -> list[dict[str, str]]:
+def _build_turns(
+    base_example: str, persona: dict[str, Any], framing: str, idx: int
+) -> list[dict[str, str]]:
     framing_text = FRAMINGS[framing]
     return [
         {
@@ -118,7 +162,9 @@ def _variant_metadata(
         "user_tone": persona.get("tone", "neutral"),
         "vulnerable_user": bool(persona.get("vulnerable_user", False)),
         "time_pressure": bool(persona.get("time_pressure", False)),
-        "emotional_state": "distressed" if persona.get("tone") in {"distressed", "anxious"} else "neutral",
+        "emotional_state": "distressed"
+        if persona.get("tone") in {"distressed", "anxious"}
+        else "neutral",
     }
 
 
@@ -157,7 +203,9 @@ def _build_standard_variants(
     return variants
 
 
-def _build_position_variants(test_id: str, base_example: str, is_multi_turn: bool) -> list[dict[str, Any]]:
+def _build_position_variants(
+    test_id: str, base_example: str, is_multi_turn: bool
+) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     persona = PERSONAS[0]
     for i, pos in enumerate(POSITIONS):
@@ -182,7 +230,9 @@ def _build_position_variants(test_id: str, base_example: str, is_multi_turn: boo
     return out
 
 
-def _build_persona_variants(test_id: str, base_example: str, is_multi_turn: bool) -> list[dict[str, Any]]:
+def _build_persona_variants(
+    test_id: str, base_example: str, is_multi_turn: bool
+) -> list[dict[str, Any]]:
     chosen = [PERSONAS[0], PERSONAS[1], PERSONAS[2]]
     out: list[dict[str, Any]] = []
     for i, persona in enumerate(chosen):
@@ -207,7 +257,9 @@ def _build_persona_variants(test_id: str, base_example: str, is_multi_turn: bool
     return out
 
 
-def _build_framing_variants(test_id: str, base_example: str, is_multi_turn: bool) -> list[dict[str, Any]]:
+def _build_framing_variants(
+    test_id: str, base_example: str, is_multi_turn: bool
+) -> list[dict[str, Any]]:
     persona = PERSONAS[0]
     out: list[dict[str, Any]] = []
     for i, framing in enumerate(["positive", "neutral", "negative"]):
@@ -271,7 +323,9 @@ def _build_canary_variants(
     return out
 
 
-def _build_adversarial_variant(test_id: str, base_example: str, is_multi_turn: bool) -> dict[str, Any]:
+def _build_adversarial_variant(
+    test_id: str, base_example: str, is_multi_turn: bool
+) -> dict[str, Any]:
     persona = PERSONAS[1]
     metadata = _variant_metadata(
         idx=500,
@@ -325,7 +379,7 @@ def generate_corpus(
 
     summary: dict[str, Any] = {
         "total_tests": 0,
-        "category_counts": {c: 0 for c in ALL_V21_CATEGORIES},
+        "category_counts": {c: 0 for c in CATEGORIES},
         "canary_tests": sorted(canary_ids),
         "files": [],
     }
@@ -338,7 +392,11 @@ def generate_corpus(
         is_multi_turn = td.id in MULTI_TURN_TESTS
 
         variants: list[dict[str, Any]] = []
-        variants.extend(_build_standard_variants(test_id=td.id, base_example=base_example, is_multi_turn=is_multi_turn))
+        variants.extend(
+            _build_standard_variants(
+                test_id=td.id, base_example=base_example, is_multi_turn=is_multi_turn
+            )
+        )
         variants.extend(_build_position_variants(td.id, base_example, is_multi_turn))
         variants.extend(_build_persona_variants(td.id, base_example, is_multi_turn))
         variants.extend(_build_framing_variants(td.id, base_example, is_multi_turn))
@@ -394,7 +452,9 @@ def generate_corpus(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate PARASITE v2.1 test YAML files.")
     parser.add_argument("--output-dir", default=str(OUTPUT_ROOT), help="Output directory.")
-    parser.add_argument("--seed", type=int, default=21, help="Random seed for canary test selection.")
+    parser.add_argument(
+        "--seed", type=int, default=21, help="Random seed for canary test selection."
+    )
     parser.add_argument("--v20-spec", default=None, help="Path to PARASITE_V2_SPEC.md")
     parser.add_argument("--v21-spec", default=None, help="Path to PARASITE_V2.1_SPEC_REFINED.md")
     args = parser.parse_args()

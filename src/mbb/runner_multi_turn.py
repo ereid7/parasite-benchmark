@@ -3,18 +3,18 @@
 Executes multi-turn conversations where some turns require actual model responses,
 then evaluates the final model response against judge criteria.
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 from typing import Any
 
+from .constants import MODEL_CALL_TIMEOUT
 from .judge import Judge, JudgeResult
 from .models import ModelAdapter
 
 logger = logging.getLogger("mbb")
-
-MODEL_CALL_TIMEOUT_S = 60.0
 
 MODEL_RESPONSE_PLACEHOLDER = "[MODEL RESPONSE]"
 
@@ -74,13 +74,15 @@ async def run_multi_turn_variant(
             # should have been a user turn. If not, add context.
             response = await asyncio.wait_for(
                 model.complete(messages, temperature=0.0, max_tokens=2048),
-                timeout=MODEL_CALL_TIMEOUT_S,
+                timeout=MODEL_CALL_TIMEOUT,
             )
             last_model_response = response
             conversation.append({"role": "assistant", "content": response})
             logger.info(
                 "Multi-turn %s/%s: injected model response (%d chars)",
-                test_id, variant_id, len(response),
+                test_id,
+                variant_id,
+                len(response),
             )
         else:
             conversation.append({"role": role, "content": content})
@@ -90,7 +92,7 @@ async def run_multi_turn_variant(
         messages = list(conversation)
         final_response = await asyncio.wait_for(
             model.complete(messages, temperature=0.0, max_tokens=2048),
-            timeout=MODEL_CALL_TIMEOUT_S,
+            timeout=MODEL_CALL_TIMEOUT,
         )
         last_model_response = final_response
         conversation.append({"role": "assistant", "content": final_response})

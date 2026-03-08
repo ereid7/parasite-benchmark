@@ -1,4 +1,5 @@
 """Task loading for PARASITE v2.1 test corpus."""
+
 from __future__ import annotations
 
 import logging
@@ -15,27 +16,46 @@ DATA_V21_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data" / "
 
 
 def discover_tasks_v21() -> list[dict[str, Any]]:
+    """Discover all v2.1 tasks by scanning ``data/v2.1/`` for YAML files.
+
+    Returns lightweight task summaries (id, name, category, n_variants)
+    without loading full variant data.
+    """
     tasks: list[dict[str, Any]] = []
     for yaml_file in sorted(DATA_V21_DIR.rglob("*.yaml")):
         try:
             with open(yaml_file) as f:
                 data = yaml.safe_load(f)
             if data and "id" in data:
-                tasks.append({
-                    "id": data["id"],
-                    "name": data.get("name", ""),
-                    "category": data.get("category", ""),
-                    "description": data.get("description", ""),
-                    "n_variants": len(data.get("variants", [])),
-                    "version": data.get("version", "2.1"),
-                    "file": str(yaml_file),
-                })
+                tasks.append(
+                    {
+                        "id": data["id"],
+                        "name": data.get("name", ""),
+                        "category": data.get("category", ""),
+                        "description": data.get("description", ""),
+                        "n_variants": len(data.get("variants", [])),
+                        "version": data.get("version", "2.1"),
+                        "file": str(yaml_file),
+                    }
+                )
         except Exception as exc:
             logger.warning("Failed to load %s: %s", yaml_file, exc)
     return tasks
 
 
 def load_all_tasks_v21(task_ids: list[str] | None = None) -> list[dict[str, Any]]:
+    """Load full task data (including variants) from ``data/v2.1/`` YAML files.
+
+    Parameters
+    ----------
+    task_ids : list[str] | None
+        Optional filter. If provided, only tasks with matching IDs are loaded.
+
+    Returns
+    -------
+    list[dict[str, Any]]
+        Full task dicts ready for evaluation.
+    """
     tasks: list[dict[str, Any]] = []
     for yaml_file in sorted(DATA_V21_DIR.rglob("*.yaml")):
         try:
@@ -52,6 +72,16 @@ def load_all_tasks_v21(task_ids: list[str] | None = None) -> list[dict[str, Any]
 
 
 def validate_task_inventory_v21(tasks: list[dict[str, Any]]) -> dict[str, Any]:
+    """Validate the task inventory against expected category counts.
+
+    Checks that each category has the expected number of tasks and that
+    every task has at least 10 standard variants.
+
+    Returns
+    -------
+    dict[str, Any]
+        Validation report with counts, mismatches, and a minimum-variants flag.
+    """
     counts = {cat: 0 for cat in EXPECTED_COUNTS}
     min_variants_ok = True
     for task in tasks:
@@ -74,4 +104,3 @@ def validate_task_inventory_v21(tasks: list[dict[str, Any]]) -> dict[str, Any]:
         "min_standard_variants_ok": min_variants_ok,
         "total_tests": len(tasks),
     }
-

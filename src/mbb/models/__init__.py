@@ -11,34 +11,40 @@ Usage::
     adapter = create_adapter("gpt-4o")
     result = await adapter.complete([{"role": "user", "content": "Hello"}])
 """
+
 from __future__ import annotations
 
 from typing import Any
 
+from mbb.exceptions import ModelAdapterError
+
 from ._base import ModelAdapter
 
 __all__ = [
-    "ModelAdapter",
-    "OpenAIAdapter",
+    "ADAPTER_REGISTRY",
     "AnthropicAdapter",
     "LocalAdapter",
-    "ADAPTER_REGISTRY",
+    "ModelAdapter",
+    "OpenAIAdapter",
     "create_adapter",
 ]
 
 
-def _get_openai_adapter():
+def _get_openai_adapter() -> type[ModelAdapter]:
     from .openai import OpenAIAdapter
+
     return OpenAIAdapter
 
 
-def _get_anthropic_adapter():
+def _get_anthropic_adapter() -> type[ModelAdapter]:
     from .anthropic import AnthropicAdapter
+
     return AnthropicAdapter
 
 
-def _get_local_adapter():
+def _get_local_adapter() -> type[ModelAdapter]:
     from .local import LocalAdapter
+
     return LocalAdapter
 
 
@@ -47,6 +53,23 @@ ADAPTER_REGISTRY: dict[str, Any] = {
     "anthropic": _get_anthropic_adapter,
     "local": _get_local_adapter,
 }
+
+
+def _load_entry_point(provider: str) -> type[ModelAdapter] | None:
+    """Try to load a model adapter class from ``mbb.adapters`` entry points."""
+    import importlib.metadata
+
+    eps = importlib.metadata.entry_points()
+    # Python 3.12+ returns SelectableGroups; 3.10-3.11 may return a dict
+    if hasattr(eps, "select"):
+        group = eps.select(group="mbb.adapters")
+    else:
+        group = eps.get("mbb.adapters", [])  # type: ignore[arg-type,union-attr]
+
+    for ep in group:
+        if ep.name == provider:
+            return ep.load()  # type: ignore[no-any-return]
+    return None
 
 
 def create_adapter(
@@ -68,9 +91,16 @@ def create_adapter(
         (``api_key``, ``base_url``, etc.).
     """
     if provider is None:
+        import os
+
+        # OpenRouter: if OPENROUTER_API_KEY is set, route everything through it
+        openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+        if openrouter_key:
+            provider = "openai"
+            kwargs.setdefault("api_key", openrouter_key)
+            kwargs.setdefault("base_url", "https://openrouter.ai/api/v1")
         # Vercel AI Gateway: provider/model-name format
-        if "/" in model_id and not model_id.startswith("http"):
-            import os
+        elif "/" in model_id and not model_id.startswith("http"):
             provider = "openai"  # Vercel uses OpenAI-compatible API
             kwargs.setdefault("api_key", os.environ.get("VERCEL_AI_GATEWAY_KEY"))
             kwargs.setdefault("base_url", "https://ai-gateway.vercel.sh/v1")
@@ -78,7 +108,6 @@ def create_adapter(
         elif "glm" in model_id:
             provider = "openai"
             # Z.AI GLM uses OpenAI-compatible API
-            import os
             kwargs.setdefault("api_key", os.environ.get("ZAI_API_KEY"))
             kwargs.setdefault("base_url", "https://api.z.ai/api/paas/v4")
         elif "gpt" in model_id or "o1" in model_id or "o3" in model_id:
@@ -89,14 +118,19 @@ def create_adapter(
             provider = "local"
 
     factory = ADAPTER_REGISTRY.get(provider)
-    if factory is None:
-        raise ValueError(f"Unknown provider: {provider!r}")
+    if factory is not None:
+        adapter_cls: type[ModelAdapter] = factory()
+        return adapter_cls(model_id, **kwargs)
 
-    adapter_cls = factory()
-    return adapter_cls(model_id, **kwargs)
+    # Fall back to entry_points for third-party adapters
+    ep_cls = _load_entry_point(provider)
+    if ep_cls is not None:
+        return ep_cls(model_id, **kwargs)
+
+    raise ModelAdapterError(f"Unknown provider: {provider!r}")
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> type[ModelAdapter]:
     _lazy_map = {
         "OpenAIAdapter": _get_openai_adapter,
         "AnthropicAdapter": _get_anthropic_adapter,
