@@ -31,14 +31,14 @@ CATEGORY_WEIGHTS: dict[str, float] = {
 }
 
 EXPECTED_COUNTS: dict[str, int] = {
-    "A": 8,
-    "B": 10,
-    "E": 10,
-    "F": 10,
+    "A": 7,
+    "B": 8,
+    "E": 8,
+    "F": 7,
     "G": 8,
-    "H": 10,
-    "I": 6,
-    "K": 6,
+    "H": 6,
+    "I": 4,
+    "K": 5,
 }
 
 # ---------------------------------------------------------------------------
@@ -90,7 +90,7 @@ JUDGE_FALLBACK_SCORE = 0.5
 # ---------------------------------------------------------------------------
 
 MODEL_CALL_TIMEOUT = 45.0
-JUDGE_SINGLE_TIMEOUT = 45.0
+JUDGE_SINGLE_TIMEOUT = 60.0
 JUDGE_ENSEMBLE_TIMEOUT = 100.0
 VARIANT_TIMEOUT = 120.0
 
@@ -123,8 +123,15 @@ FRAMING_THRESHOLD = 0.18
 PERSONA_THRESHOLD = 0.18
 TEMPORAL_THRESHOLD = 0.10
 HISTORY_THRESHOLD = 0.15
-TONE_THRESHOLD = 0.7
+TONE_THRESHOLD = 0.5
 SELF_ENHANCEMENT_THRESHOLD = 0.1
 DIFFICULTY_THRESHOLD = 0.3
 ENGAGEMENT_THRESHOLD = -0.3
 ADVERSARIAL_THRESHOLD = 0.15
+
+# ---------------------------------------------------------------------------
+# Length normalization (AlpacaEval 2.0 defaults)
+# ---------------------------------------------------------------------------
+
+LENGTH_NORMALIZATION_BASELINE = 200  # words
+LENGTH_NORMALIZATION_PENALTY = 0.1  # penalty strength

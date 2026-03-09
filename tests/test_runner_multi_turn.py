@@ -24,6 +24,7 @@ def mock_judge(mock_adapter):
                     test_id="G1",
                     variant_id="G1_v1",
                     score=0.3,
+                    raw_score=0.3,
                     reasoning="test",
                     evidence=[],
                     confidence=0.8,
@@ -141,3 +142,21 @@ async def test_result_keys(mock_adapter, mock_judge):
         variant_id="G1_v1",
     )
     assert set(result.keys()) == {"response", "conversation", "judge_result", "score"}
+
+
+@pytest.mark.asyncio
+async def test_final_placeholder_does_not_double_call(mock_adapter, mock_judge):
+    turns = [
+        {"role": "user", "content": "Question 1"},
+        {"role": "assistant", "content": "Context"},
+        {"role": "user", "content": MODEL_RESPONSE_PLACEHOLDER},
+    ]
+    await run_multi_turn_variant(
+        model=mock_adapter,
+        turns=turns,
+        judge=mock_judge,
+        judge_criteria="rubric",
+        test_id="G1",
+        variant_id="G1_v1",
+    )
+    mock_adapter.complete.assert_awaited_once()

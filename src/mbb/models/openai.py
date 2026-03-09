@@ -96,7 +96,6 @@ class OpenAIAdapter(ModelAdapter):
     async def _complete_json_vercel(self, **kwargs: Any) -> Any:
         return await self._client.chat.completions.create(**kwargs)
 
-    @retry(stop=stop_after_attempt(10), wait=wait_exponential(min=10, max=120))
     async def complete_json(
         self,
         messages: list[dict[str, str]],

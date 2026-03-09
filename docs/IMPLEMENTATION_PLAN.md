@@ -1,6 +1,6 @@
 # PARASITE Benchmark — Implementation Plan: Professional-Grade Refactor
 
-**Status:** Planning
+**Status:** Complete (Phases 1-6 implemented)
 **Goal:** Elevate codebase from B+ research code to A-tier open-source benchmark
 **Comparable to:** HELM, lm-eval-harness, AlpacaEval
 
@@ -40,7 +40,6 @@ v1 code is marked with DeprecationWarnings but still in production paths. Commit
 
 **Modify:**
 - `src/mbb/cli.py` — Remove `--version` choice flag, default to v2.1 only. Remove v1 `run_benchmark` import. Remove v1 `discover_tasks` import paths.
-- `src/mbb/config.py` — Update `CATEGORY_NAMES` to include I and K. Update `DEFAULT_WEIGHTS` to 8-category equal weights. Remove v1-only config paths.
 - `src/mbb/__init__.py` — Remove any v1 re-exports.
 
 **Keep (shared by v2.1):**
@@ -544,7 +543,6 @@ DEFAULT_JUDGE_ENSEMBLE: list[str] = [
 ```
 
 **Current duplication this replaces:**
-- `src/mbb/config.py:20-34` (CLASSIFICATION_THRESHOLDS, classify_pi)
 - `src/mbb/v2/spec.py:42-50,102-106` (V21_CLASSIFICATION_BANDS, classify_v21)
 - `src/mbb/v2/spec.py:17-24` (V21_WEIGHTS, EXPECTED_COUNTS)
 - `src/mbb/v2/spec.py:29-35` (V21_JUDGE_ENSEMBLE_DEFAULT)
@@ -607,7 +605,6 @@ Create `tests/` directory with 125+ tests across 12 files.
 | `test_json_extraction.py` | 10 | `utils/json_extraction.py` — raw JSON, markdown blocks, embedded JSON, malformed input |
 | `test_checkpointing.py` | 8 | `utils/checkpointing.py` — save, load, missing file, corrupt file, most recent selection |
 | `test_constants.py` | 5 | `constants.py` — classify_score boundaries, weight sum = 1.0, all categories present |
-| `test_config.py` | 15 | `config.py` — load_config, validate weights, validate categories, missing fields |
 | `test_scoring.py` | 25 | `v2/scoring.py` — TestScore, CategoryScore, aggregate_v21_results, length_score_correlation |
 | `test_tasks.py` | 10 | `v2/tasks.py` — discover tasks, load tasks, validate inventory, missing YAML |
 | `test_judge.py` | 15 | `judge/judge.py` — JudgeResult, ensemble aggregation, timeout fallback, score clamping |
@@ -846,7 +843,6 @@ Contents:
 **`docs/configuration.md`**
 Contents:
 - CLI flags reference (all options with defaults)
-- YAML config file schema
 - Environment variables reference
 - YAML task file schema (fields, variant types, judge anchors)
 

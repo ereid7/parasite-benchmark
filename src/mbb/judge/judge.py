@@ -42,11 +42,13 @@ class JudgeEvaluation:
     test_id: str
     variant_id: str
     score: float
+    raw_score: float
     reasoning: str
     evidence: list[str]
     confidence: float
     raw_response: dict[str, Any] | None = None
     judge_model: str = ""
+    is_fallback: bool = False
 
 
 @dataclass
@@ -156,6 +158,7 @@ class Judge:
                 adapter.complete_json(messages, temperature=0.3, max_tokens=2048),
                 timeout=timeout,
             )
+            is_fallback = False
         except asyncio.TimeoutError:
             logger.warning(
                 "Judge timed out after %.0fs for %s/%s (%s)", timeout, test_id, variant_id, jm
@@ -166,6 +169,7 @@ class Judge:
                 "evidence": [],
                 "confidence": 0.0,
             }
+            is_fallback = True
         except Exception as exc:
             logger.error("Judge evaluation failed for %s/%s: %s", test_id, variant_id, exc)
             result = {
@@ -174,10 +178,11 @@ class Judge:
                 "evidence": [],
                 "confidence": 0.0,
             }
+            is_fallback = True
 
         raw_score = max(0.0, min(1.0, float(result.get("score", JUDGE_FALLBACK_SCORE))))
 
-        if self.length_normalize:
+        if self.length_normalize and not is_fallback:
             debiased = debias_score(
                 raw_score,
                 model_response,
@@ -192,11 +197,13 @@ class Judge:
             test_id=test_id,
             variant_id=variant_id,
             score=score,
+            raw_score=raw_score,
             reasoning=result.get("reasoning", ""),
             evidence=result.get("evidence", []),
             confidence=float(result.get("confidence", 0.5)),
             raw_response=result,
             judge_model=jm,
+            is_fallback=is_fallback,
         )
 
     async def evaluate(
@@ -268,35 +275,50 @@ class Judge:
                 evals.append(ev)
             return evals
 
-        # Run all judges in parallel with timeout
-        try:
-            all_eval_lists = await asyncio.wait_for(
-                asyncio.gather(
-                    *[_run_judge(jm) for jm in self.judge_models],
-                    return_exceptions=True,
-                ),
-                timeout=JUDGE_ENSEMBLE_TIMEOUT,
+        judge_tasks = {jm: asyncio.create_task(_run_judge(jm)) for jm in self.judge_models}
+        done, pending = await asyncio.wait(
+            set(judge_tasks.values()),
+            timeout=JUDGE_ENSEMBLE_TIMEOUT,
+        )
+        if pending:
+            logger.error(
+                "Ensemble timed out for %s/%s with %d/%d judges pending",
+                test_id,
+                variant_id,
+                len(pending),
+                len(judge_tasks),
             )
-        except asyncio.TimeoutError:
-            logger.error("Ensemble gather timed out for %s/%s", test_id, variant_id)
-            all_eval_lists = []
+            for task in pending:
+                task.cancel()
+            await asyncio.gather(*pending, return_exceptions=True)
 
-        # Flatten all evaluations (handle exceptions from return_exceptions=True)
         all_evaluations: list[JudgeEvaluation] = []
         judge_mean_scores: list[JudgeScore] = []
-        for jm, evals in zip(self.judge_models, all_eval_lists):
-            if isinstance(evals, BaseException):
-                logger.error("Judge %s failed in ensemble: %s", jm, evals)
+        for jm in self.judge_models:
+            task = judge_tasks[jm]
+            if task not in done:
                 judge_mean_scores.append(
                     JudgeScore(
                         judge_id=jm,
                         score=JUDGE_FALLBACK_SCORE,
-                        reasoning=f"Judge error: {evals}",
+                        reasoning="Judge timed out in ensemble",
+                    )
+                )
+                continue
+            try:
+                evals = task.result()
+            except BaseException as exc:
+                logger.error("Judge %s failed in ensemble: %s", jm, exc)
+                judge_mean_scores.append(
+                    JudgeScore(
+                        judge_id=jm,
+                        score=JUDGE_FALLBACK_SCORE,
+                        reasoning=f"Judge error: {exc}",
                     )
                 )
                 continue
             all_evaluations.extend(evals)
-            mean = sum(e.score for e in evals) / len(evals) if evals else 0.0
+            mean = sum(e.score for e in evals) / len(evals) if evals else JUDGE_FALLBACK_SCORE
             reasoning = evals[0].reasoning if evals else ""
             judge_mean_scores.append(
                 JudgeScore(

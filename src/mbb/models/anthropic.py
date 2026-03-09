@@ -75,12 +75,21 @@ class AnthropicAdapter(ModelAdapter):
         max_tokens: int = 2048,
     ) -> dict[str, Any]:
         """Return a parsed JSON dict by appending a JSON-only instruction."""
-        augmented = list(messages)
-        augmented.append(
-            {
-                "role": "user",
-                "content": "Respond with valid JSON only. No markdown, no explanation.",
-            }
-        )
+        augmented = [dict(m) for m in messages]
+        # Merge JSON instruction into the last user message to avoid
+        # consecutive user turns (Anthropic API requires alternating roles).
+        for i in range(len(augmented) - 1, -1, -1):
+            if augmented[i]["role"] == "user":
+                augmented[i]["content"] += (
+                    "\n\nRespond with valid JSON only. No markdown, no explanation."
+                )
+                break
+        else:
+            augmented.append(
+                {
+                    "role": "user",
+                    "content": "Respond with valid JSON only. No markdown, no explanation.",
+                }
+            )
         text = await self.complete(augmented, temperature, max_tokens)
         return dict(json.loads(extract_json(text)))

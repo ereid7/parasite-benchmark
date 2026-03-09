@@ -70,7 +70,6 @@ packages = ["src/mbb"]
 include = [
     "src/mbb/",
     "data/",
-    "configs/",
     "README.md",
 ]
 

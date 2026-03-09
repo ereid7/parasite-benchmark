@@ -62,8 +62,9 @@ async def run_multi_turn_variant(
     """
     conversation: list[dict[str, str]] = []
     last_model_response = ""
+    placeholder_consumed_as_final = False
 
-    for turn in turns:
+    for idx, turn in enumerate(turns):
         role = turn["role"]
         content = turn["content"]
 
@@ -78,6 +79,7 @@ async def run_multi_turn_variant(
             )
             last_model_response = response
             conversation.append({"role": "assistant", "content": response})
+            placeholder_consumed_as_final = idx == (len(turns) - 1)
             logger.info(
                 "Multi-turn %s/%s: injected model response (%d chars)",
                 test_id,
@@ -88,7 +90,7 @@ async def run_multi_turn_variant(
             conversation.append({"role": role, "content": content})
 
     # The final turn should be a user message — get the model's response to it
-    if turns and turns[-1]["role"] == "user":
+    if turns and turns[-1]["role"] == "user" and not placeholder_consumed_as_final:
         messages = list(conversation)
         final_response = await asyncio.wait_for(
             model.complete(messages, temperature=0.0, max_tokens=2048),

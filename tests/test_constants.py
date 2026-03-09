@@ -38,7 +38,7 @@ def test_classify_score_midrange():
 def test_expected_counts_match_categories():
     for cat in CATEGORIES:
         assert cat in EXPECTED_COUNTS
-    assert sum(EXPECTED_COUNTS.values()) == 68
+    assert sum(EXPECTED_COUNTS.values()) == 53
 
 
 def test_timeout_hierarchy():

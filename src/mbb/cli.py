@@ -69,14 +69,6 @@ def main() -> None:
 @click.option("-m", "--models", required=True, help="Comma-separated model IDs.")
 @click.option("-t", "--tasks", default=None, help="Comma-separated task IDs (default: all).")
 @click.option(
-    "-c",
-    "--config",
-    "config_path",
-    default=None,
-    type=click.Path(exists=True),
-    help="Config file path.",
-)
-@click.option(
     "-j",
     "--judge",
     default=None,
@@ -96,27 +88,29 @@ def main() -> None:
     default=True,
     help="Include canary variants for gaming detection.",
 )
+@click.option(
+    "--resume/--no-resume",
+    default=True,
+    help="Resume from the latest compatible checkpoint in the output directory.",
+)
 @click.option("--log-level", default="INFO", help="Logging level.")
 def run(  # type: ignore[no-untyped-def]
     models,
     tasks,
-    config_path,
     judge,
     judge_weights,
     judge_runs,
     output,
     concurrency,
     canary,
+    resume,
     log_level,
 ) -> None:
     """Run the PARASITE benchmark on specified models."""
-    from .config import load_config
     from .exceptions import SelfJudgingError
     from .utils.providers import detect_provider
 
     _setup_logging(log_level)
-
-    _cfg = load_config(config_path) if config_path else {}
     model_list = [m.strip() for m in models.split(",")]
     task_list = [t.strip() for t in tasks.split(",")] if tasks else None
 
@@ -124,7 +118,7 @@ def run(  # type: ignore[no-untyped-def]
     if judge_weights:
         parsed_weights = [float(w.strip()) for w in judge_weights.split(",")]
 
-    # --- Cross-judge enforcement: block same-provider judging ---
+    # --- Cross-judge preflight: block obvious same-provider judging ---
     judge_ids = [j.strip() for j in (judge or "").split(",") if j.strip()]
     if judge_ids:
         for target in model_list:
@@ -157,6 +151,7 @@ def run(  # type: ignore[no-untyped-def]
             output_dir=output,
             max_concurrent=concurrency,
             include_canary=canary,
+            resume=resume,
         )
     )
 
@@ -220,6 +215,56 @@ def estimate(models, judge_runs) -> None:  # type: ignore[no-untyped-def]
         "\n[dim]Cost depends on model pricing. "
         "Typical: ~$0.01-0.05 per variant for model + judge calls.[/dim]"
     )
+
+
+@main.command("validate-calibration")
+@click.option(
+    "-j",
+    "--judge",
+    default=None,
+    help="Judge model ID(s). Default is 5-judge ensemble.",
+)
+@click.option("-n", "--judge-runs", default=1, type=int, help="Judge runs per anchor.")
+@click.option("--log-level", default="INFO", help="Logging level.")
+def validate_calibration(judge, judge_runs, log_level) -> None:  # type: ignore[no-untyped-def]
+    """Validate judge calibration by scoring known anchors."""
+    from .judge import Judge
+    from .judge.debiasing import validate_calibration_anchors
+    from .v2.spec import normalize_v21_judge_models
+
+    _setup_logging(log_level)
+
+    from .constants import DEFAULT_JUDGE_ENSEMBLE
+
+    judge_model = judge or ",".join(DEFAULT_JUDGE_ENSEMBLE)
+    judge_model = normalize_v21_judge_models(judge_model)
+    j = Judge(judge_model=judge_model, n_runs=judge_runs)
+
+    console.print(f"[bold]Validating calibration for: {judge_model}[/bold]\n")
+
+    results = asyncio.run(validate_calibration_anchors(j, category="A"))
+
+    table = Table(title="Calibration Anchor Validation")
+    table.add_column("Level", style="cyan")
+    table.add_column("Expected", justify="right")
+    table.add_column("Actual", justify="right")
+    table.add_column("Within Tolerance", justify="center")
+
+    all_ok = True
+    for level, data in results.items():
+        ok = data["within_tolerance"]
+        if not ok:
+            all_ok = False
+        ok_str = "[green]YES[/green]" if ok else "[red]NO[/red]"
+        table.add_row(level, f"{data['expected']:.2f}", f"{data['actual']:.4f}", ok_str)
+
+    console.print(table)
+    if all_ok:
+        console.print("\n[green]All anchors within tolerance (±0.15).[/green]")
+    else:
+        console.print(
+            "\n[yellow]Some anchors outside tolerance — judge may need recalibration.[/yellow]"
+        )
 
 
 @main.command()

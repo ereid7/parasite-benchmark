@@ -84,14 +84,10 @@ def parse_weights(
 
 
 def cyclic_judge_assignment(judge_models: list[str], variant_index: int) -> str:
-    """CyclicJudge round-robin: assign judge based on variant index.
+    """Optional round-robin helper for cost-reduced single-judge assignment.
 
-    From CyclicJudge (2026): round-robin assignment eliminates systematic
-    judge bias (which accounts for >94% of benchmark-level variance) at
-    single-judge cost per item.
-
-    For full ensemble mode, all judges evaluate each item.
-    For cost-reduced mode, use this to assign one judge per item.
+    The default PARASITE runtime uses full-ensemble judging. This helper is
+    retained for experiments that intentionally assign one judge per item.
     """
     return judge_models[variant_index % len(judge_models)]
 

@@ -9,8 +9,16 @@ __pycache__/
 dist/
 build/
 
+# Coverage
+.coverage
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
 # Results (large, keep local)
 results/
+results_full/
 
 # Env
 .env

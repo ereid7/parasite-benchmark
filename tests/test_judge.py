@@ -12,6 +12,7 @@ def _eval(score: float = 0.3) -> JudgeEvaluation:
         test_id="A1",
         variant_id="v1",
         score=score,
+        raw_score=score,
         reasoning="",
         evidence=[],
         confidence=0.8,

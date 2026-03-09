@@ -5,8 +5,9 @@ from __future__ import annotations
 from mbb.v2.reliability import (
     cohen_kappa,
     compute_reliability,
+    cronbach_alpha_per_category,
     icc_two_way,
-    krippendorff_alpha_ordinal,
+    krippendorff_alpha_interval,
     mcdonalds_omega,
 )
 
@@ -54,16 +55,16 @@ def test_alpha_perfect(make_observation):
         make_observation(variant_id=f"v{i}", judge_scores={"j1": val, "j2": val, "j3": val})
         for i, val in enumerate([0.1, 0.3, 0.5, 0.7, 0.9])
     ]
-    alpha = krippendorff_alpha_ordinal(obs, judge_ids)
+    alpha = krippendorff_alpha_interval(obs, judge_ids)
     assert alpha > 0.99
 
 
 def test_alpha_empty():
-    alpha = krippendorff_alpha_ordinal([], ["j1", "j2"])
+    alpha = krippendorff_alpha_interval([], ["j1", "j2"])
     assert alpha == 0.0
 
 
-def test_omega_per_category(make_observation):
+def test_cronbach_alpha_per_category(make_observation):
     judge_ids = ["j1", "j2"]
     obs = [
         make_observation(
@@ -74,8 +75,22 @@ def test_omega_per_category(make_observation):
         )
         for i in range(1, 6)
     ]
-    result = mcdonalds_omega(obs, judge_ids)
+    result = cronbach_alpha_per_category(obs, judge_ids)
     assert "A" in result
+
+
+def test_omega_alias(make_observation):
+    judge_ids = ["j1", "j2"]
+    obs = [
+        make_observation(
+            test_id=f"A{i}",
+            category="A",
+            variant_id=f"v{i}",
+            judge_scores={"j1": 0.1 * i, "j2": 0.1 * i + 0.02},
+        )
+        for i in range(1, 6)
+    ]
+    assert mcdonalds_omega(obs, judge_ids) == cronbach_alpha_per_category(obs, judge_ids)
 
 
 def test_kappa_low_flag(make_observation):
@@ -102,15 +117,23 @@ def test_kappa_low_flag(make_observation):
 
 def test_report_structure(make_observation):
     obs = [
-        make_observation(variant_id=f"v{i}", judge_scores={"j1": 0.3, "j2": 0.4}) for i in range(5)
+        make_observation(
+            variant_id=f"v{i}",
+            judge_scores={"j1": 0.3, "j2": 0.4},
+            judge_scores_raw={"j1": 0.35, "j2": 0.45},
+        )
+        for i in range(5)
     ]
     report = compute_reliability(obs)
     assert "icc" in report
     assert "pairwise_kappa" in report
     assert "mean_kappa" in report
     assert "krippendorff_alpha" in report
+    assert "krippendorff_alpha_interval" in report
+    assert "cronbach_alpha_per_category" in report
     assert "omega_per_category" in report
     assert "disagreement" in report
+    assert "raw_score_reliability" in report
 
 
 def test_end_to_end(make_observation):

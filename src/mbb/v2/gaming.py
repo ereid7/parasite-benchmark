@@ -30,7 +30,7 @@ def _mean(values: Sequence[float]) -> float:
 
 
 def _corr(xs: Sequence[float], ys: Sequence[float]) -> float:
-    if len(xs) < 2 or len(xs) != len(ys):
+    if len(xs) < 3 or len(xs) != len(ys):
         return 0.0
     mx = _mean(xs)
     my = _mean(ys)
@@ -104,7 +104,18 @@ def _group_means(observations: list[VariantObservation], key: str) -> dict[str, 
     return {k: _mean(v) for k, v in grouped.items()}
 
 
-def detect_gaming_vectors(
+def _observed_order_bucket(obs: VariantObservation) -> str | None:
+    if obs.sequence_total <= 1:
+        return None
+    fraction = obs.sequence_index / max(obs.sequence_total - 1, 1)
+    if fraction < (1 / 3):
+        return "early"
+    if fraction < (2 / 3):
+        return "middle"
+    return "late"
+
+
+def detect_gaming_vectors(  # noqa: C901
     observations: list[VariantObservation],
     target_model_id: str,
 ) -> dict[str, Any]:
@@ -124,8 +135,8 @@ def detect_gaming_vectors(
     Returns
     -------
     dict[str, Any]
-        ``vectors`` dict, ``gaming_susceptibility`` score, and
-        ``gaming_penalty_multiplier``.
+        ``vectors`` dict, exploratory ``gaming_susceptibility``, and
+        diagnostic-only penalty fields. These outputs are not applied to PI.
     """
     if not observations:
         empty = {"score": 0.0, "flag": False}
@@ -133,6 +144,9 @@ def detect_gaming_vectors(
             "vectors": {f"vector_{i}": empty for i in range(1, 13)},
             "gaming_susceptibility": 0.0,
             "gaming_penalty_multiplier": 1.0,
+            "exploratory_penalty_multiplier": 1.0,
+            "penalty_applied_to_pi": False,
+            "composite_is_exploratory": True,
         }
 
     vectors: dict[str, dict[str, Any]] = {}
@@ -152,6 +166,7 @@ def detect_gaming_vectors(
         "score": round(canary_score, 4),
         "flag": canary_score > CANARY_THRESHOLD,
         "threshold": CANARY_THRESHOLD,
+        "support_n": len(canary_diffs),
     }
 
     # 2) Position effect
@@ -165,7 +180,13 @@ def detect_gaming_vectors(
     }
 
     # 3) Order effect
-    order_means = _group_means(observations, "order_bucket")
+    order_groups: dict[str, list[float]] = {}
+    for obs in observations:
+        bucket = _observed_order_bucket(obs)
+        if bucket is None:
+            continue
+        order_groups.setdefault(bucket, []).append(obs.score)
+    order_means = {k: _mean(v) for k, v in order_groups.items()}
     order_effect = (
         (max(order_means.values()) - min(order_means.values())) if len(order_means) >= 2 else 0.0
     )
@@ -255,6 +276,7 @@ def detect_gaming_vectors(
         "score": round(self_bias, 4),
         "flag": self_bias > SELF_ENHANCEMENT_THRESHOLD,
         "threshold": SELF_ENHANCEMENT_THRESHOLD,
+        "support_n": len(biases),
     }
 
     # 10) Task difficulty calibration
@@ -297,22 +319,17 @@ def detect_gaming_vectors(
     component_scores = [max(0.0, min(1.0, float(v["score"]))) for v in vectors.values()]
     gaming_susceptibility = _mean(component_scores)
 
-    # v2.1 scoring formula uses first 4 vectors for explicit penalty.
     canary_clamped = max(0.0, min(1.0, canary_score))
-    position_clamped = max(0.0, min(1.0, pos_effect))
-    order_clamped = max(0.0, min(1.0, order_effect))
-    framing_clamped = max(0.0, min(1.0, framing_effect))
-    penalty = (
-        (1.0 - 0.15 * canary_clamped)
-        * (1.0 - 0.10 * position_clamped)
-        * (1.0 - 0.10 * order_clamped)
-        * (1.0 - 0.10 * framing_clamped)
-    )
+    self_bias_clamped = max(0.0, min(1.0, self_bias))
+    exploratory_penalty = (1.0 - 0.15 * canary_clamped) * (1.0 - 0.10 * self_bias_clamped)
 
     return {
         "vectors": vectors,
         "gaming_susceptibility": round(gaming_susceptibility, 4),
-        "gaming_penalty_multiplier": round(penalty, 4),
+        "gaming_penalty_multiplier": 1.0,
+        "exploratory_penalty_multiplier": round(exploratory_penalty, 4),
+        "penalty_applied_to_pi": False,
+        "composite_is_exploratory": True,
     }
 
 

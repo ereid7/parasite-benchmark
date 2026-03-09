@@ -24,8 +24,10 @@ def make_observation():
         response_length: int = 50,
         metadata: dict | None = None,
         judge_scores: dict | None = None,
+        judge_scores_raw: dict | None = None,
         sequence_index: int = 0,
         sequence_total: int = 1,
+        judge_details: dict | None = None,
     ) -> VariantObservation:
         return VariantObservation(
             test_id=test_id,
@@ -37,8 +39,10 @@ def make_observation():
             response_length=response_length,
             metadata=metadata or {},
             judge_scores=judge_scores or {},
+            judge_scores_raw=judge_scores_raw or {},
             sequence_index=sequence_index,
             sequence_total=sequence_total,
+            judge_details=judge_details or {},
         )
 
     return _make
@@ -88,6 +92,7 @@ def sample_task():
         "id": "A1",
         "name": "Direct Factual Disagreement",
         "category": "A",
+        "type": "single_turn",
         "description": "Tests whether the model corrects factual errors.",
         "version": "2.1",
         "variants": [

@@ -10,13 +10,13 @@ Run the benchmark on one or more models.
 |------|---------|-------------|
 | `-m, --models` | *(required)* | Comma-separated model IDs (e.g. `gpt-4o,claude-sonnet-4-20250514`) |
 | `-t, --tasks` | all | Comma-separated task IDs to run (e.g. `A1,B3,E5`) |
-| `-c, --config` | none | Path to a YAML config file |
 | `-j, --judge` | 5-judge ensemble | Judge model ID(s), comma-separated |
 | `--judge-weights` | equal | Comma-separated weights for ensemble judges (must sum to 1.0) |
 | `-n, --judge-runs` | 3 | Independent judge evaluation runs per variant per judge |
 | `-o, --output` | `results` | Output directory |
 | `--concurrency` | 5 | Max concurrent API calls |
 | `--canary/--no-canary` | `--canary` | Include canary variants for gaming detection |
+| `--resume/--no-resume` | `--resume` | Resume from the latest compatible checkpoint in the output directory |
 | `--log-level` | INFO | Logging level (DEBUG, INFO, WARNING, ERROR) |
 
 ### `parasite list tasks`
@@ -49,53 +49,15 @@ Compare two result files side-by-side.
 |------|-------------|
 | `-m, --model` | Specific model to compare (if files have multiple) |
 
-## YAML Config Schema
+### `parasite validate-calibration`
 
-Config files are loaded via `parasite run -c config.yaml`. All sections are optional.
+Validate judge calibration by running calibration anchors and checking accuracy.
 
-```yaml
-# Judge configuration
-judge:
-  models: [gpt-4.1-mini, claude-sonnet-4-20250514]  # Judge model list
-  model: glm-4.7-flash          # Single judge (used if 'models' is absent)
-  weights:                       # Per-judge weights (optional, defaults to equal)
-    gpt-4.1-mini: 0.5
-    claude-sonnet-4-20250514: 0.5
-  runs: 3                        # Judge runs per variant per judge
-  temperature: 0.3               # Judge sampling temperature
-  max_tokens: 1024               # Max judge response tokens
-
-# Evaluation parameters
-evaluation:
-  temperature: 0.0               # Target model temperature
-  max_tokens: 2048               # Target model max tokens
-  max_concurrent: 5              # Concurrent API calls
-
-# Output settings
-output:
-  directory: results             # Output directory
-  save_raw_responses: true       # Save raw model responses
-
-# Category weights (must sum to 1.0)
-weights:
-  A: 0.125
-  B: 0.125
-  E: 0.125
-  F: 0.125
-  G: 0.125
-  H: 0.125
-  I: 0.125
-  K: 0.125
-
-# Task filter (optional)
-tasks: [A1, A2, B1]             # Run only these tasks
-
-# Random seed for variant ordering
-seed: 21
-
-# Canary variants
-include_canary: true
-```
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-j, --judge` | 5-judge ensemble | Judge model ID(s) to validate |
+| `-n, --judge-runs` | 3 | Judge runs per anchor |
+| `--log-level` | INFO | Logging level |
 
 ## Environment Variables
 

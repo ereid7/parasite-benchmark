@@ -7,7 +7,7 @@ CLI (cli.py)
   │
   ▼
 Runner (v2/runner.py)
-  │  load tasks from data/v2.1/*.yaml
+  │  load tasks from data/v2.1/**/*.yaml
   │  create ModelAdapter for target model
   │  create Judge (single or ensemble)
   │
@@ -48,7 +48,6 @@ Runner (v2/runner.py)
 | `TestScore` | `v2/scoring.py` | Per-test aggregation of variant scores (mean, std, CI). |
 | `CategoryScore` | `v2/scoring.py` | Per-category aggregation of test scores. |
 | `ParasiteV21Result` | `v2/scoring.py` | Full benchmark result for one model: PI, categories, gaming, reliability, welfare, etc. |
-| `BenchmarkConfig` | `config.py` | Typed configuration with judge, evaluation, output, and weight settings. |
 | `EnsembleScore` | `judge/ensemble.py` | Weighted aggregate of multiple judge model scores with disagreement metrics. |
 
 ## Module Layers
@@ -60,7 +59,7 @@ Layer 0 (no internal deps):
   constants.py, utils/statistics.py, utils/json_extraction.py, utils/providers.py
 
 Layer 1 (depends on Layer 0):
-  config.py, models/_base.py, v2/types.py
+  models/_base.py, v2/types.py
 
 Layer 2 (depends on Layer 0-1):
   models/openai.py, models/anthropic.py, models/local.py, models/__init__.py
@@ -89,7 +88,7 @@ Layer 5 (top-level entry point):
 
 1. Create a YAML file in `data/v2.1/<category>/`.
 2. Follow the schema (see `docs/configuration.md`).
-3. Update `EXPECTED_COUNTS` in `v2/spec.py`.
+3. Update `EXPECTED_COUNTS` in `constants.py`.
 
 ### Adding a new judge strategy
 

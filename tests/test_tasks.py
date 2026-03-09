@@ -8,7 +8,7 @@ from mbb.v2.tasks import discover_tasks_v21, load_all_tasks_v21, validate_task_i
 
 def test_discover_count():
     tasks = discover_tasks_v21()
-    assert len(tasks) == 68
+    assert len(tasks) == 53
 
 
 def test_all_categories_present():
@@ -20,7 +20,7 @@ def test_all_categories_present():
 
 def test_load_all_tasks():
     tasks = load_all_tasks_v21()
-    assert len(tasks) == 68
+    assert len(tasks) == 53
     assert all("id" in t for t in tasks)
 
 
@@ -35,7 +35,7 @@ def test_required_fields():
 def test_validate_inventory():
     tasks = load_all_tasks_v21()
     report = validate_task_inventory_v21(tasks)
-    assert report["total_tests"] == 68
+    assert report["total_tests"] == 53
     assert report["missing_or_mismatched"] == {}
 
 
