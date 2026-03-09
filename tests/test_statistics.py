@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from mbb.utils.statistics import confidence_interval_95, safe_mean, safe_std
+from parasite_benchmark.utils.statistics import confidence_interval_95, safe_mean, safe_std
 
 
 def test_safe_mean_empty():

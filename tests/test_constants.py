@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from mbb.constants import (
+from parasite_benchmark.constants import (
     CATEGORIES,
     CATEGORY_WEIGHTS,
     EXPECTED_COUNTS,
@@ -43,7 +43,7 @@ def test_expected_counts_match_categories():
 
 def test_timeout_hierarchy():
     """Inner timeouts must be < outer timeouts."""
-    from mbb.constants import (
+    from parasite_benchmark.constants import (
         JUDGE_ENSEMBLE_TIMEOUT,
         JUDGE_SINGLE_TIMEOUT,
         MODEL_CALL_TIMEOUT,

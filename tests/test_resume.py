@@ -7,13 +7,13 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
-from mbb.judge.judge import JudgeResult
-from mbb.v2.evaluator import evaluate_model_v21
-from mbb.v2.orchestrator import run_benchmark_v21
-from mbb.v2.scoring import ParasiteV21Result
+from parasite_benchmark.benchmark.evaluator import evaluate_model
+from parasite_benchmark.benchmark.orchestrator import run_benchmark
+from parasite_benchmark.benchmark.scoring import ParasiteResult
+from parasite_benchmark.judge.core import JudgeResult
 
 
-def test_evaluate_model_v21_skips_resumed_variants(
+def test_evaluate_model_skips_resumed_variants(
     monkeypatch,
     sample_task,
     make_observation,
@@ -30,7 +30,10 @@ def test_evaluate_model_v21_skips_resumed_variants(
     checkpoint_sizes: list[int] = []
     progress_calls = 0
 
-    monkeypatch.setattr("mbb.v2.evaluator.create_adapter", lambda model_id: SimpleNamespace())
+    monkeypatch.setattr(
+        "parasite_benchmark.benchmark.evaluator.create_adapter",
+        lambda model_id: SimpleNamespace(),
+    )
 
     async def fake_evaluate_variant(adapter, judge, task, variant, model_id, rubric):
         called_variants.append(variant["id"])
@@ -40,7 +43,10 @@ def test_evaluate_model_v21_skips_resumed_variants(
             JudgeResult(test_id=task["id"], variant_id=variant["id"], evaluations=[]),
         )
 
-    monkeypatch.setattr("mbb.v2.evaluator._evaluate_variant", fake_evaluate_variant)
+    monkeypatch.setattr(
+        "parasite_benchmark.benchmark.evaluator._evaluate_variant",
+        fake_evaluate_variant,
+    )
 
     def checkpoint_callback(obs):
         checkpoint_sizes.append(len(obs))
@@ -50,7 +56,7 @@ def test_evaluate_model_v21_skips_resumed_variants(
         progress_calls += 1
 
     result, observations = asyncio.run(
-        evaluate_model_v21(
+        evaluate_model(
             model_id="openai/test-model",
             tasks=[sample_task],
             judge=SimpleNamespace(judge_models=["judge-a"]),
@@ -70,7 +76,7 @@ def test_evaluate_model_v21_skips_resumed_variants(
     assert result.diagnostics["variant_completion_rate"] == 1.0
 
 
-def test_run_benchmark_v21_resumes_same_run_directory(
+def test_run_benchmark_resumes_same_run_directory(
     monkeypatch,
     tmp_path: Path,
     make_observation,
@@ -109,7 +115,7 @@ def test_run_benchmark_v21_resumes_same_run_directory(
                 "classification": "Commensal",
                 "weights": {},
                 "categories": {},
-                "version": "2.1",
+                "version": "1.0.0",
             }
         },
         "observations_by_model": {
@@ -119,7 +125,7 @@ def test_run_benchmark_v21_resumes_same_run_directory(
     (run_dir / "checkpoint.json").write_text(json.dumps(checkpoint_payload))
 
     monkeypatch.setattr(
-        "mbb.v2.orchestrator.load_all_tasks_v21",
+        "parasite_benchmark.benchmark.orchestrator.load_tasks",
         lambda task_ids=None: [
             {
                 "id": "A1",
@@ -132,16 +138,22 @@ def test_run_benchmark_v21_resumes_same_run_directory(
             }
         ],
     )
-    monkeypatch.setattr("mbb.v2.orchestrator.generate_run_id", lambda: "run-new")
-    monkeypatch.setattr("mbb.v2.orchestrator.generate_report_v21", lambda results, run_id: "report")
+    monkeypatch.setattr(
+        "parasite_benchmark.benchmark.orchestrator.generate_run_id",
+        lambda: "run-new",
+    )
+    monkeypatch.setattr(
+        "parasite_benchmark.benchmark.orchestrator.generate_report",
+        lambda results, run_id: "report",
+    )
 
     class FakeJudge:
         def __init__(self, judge_model, n_runs, judge_weights=None, **kwargs):
             self.judge_models = [m.strip() for m in judge_model.split(",") if m.strip()]
 
-    monkeypatch.setattr("mbb.v2.orchestrator.Judge", FakeJudge)
+    monkeypatch.setattr("parasite_benchmark.benchmark.orchestrator.Judge", FakeJudge)
 
-    async def fake_evaluate_model_v21(
+    async def fake_evaluate_model(
         *,
         model_id,
         tasks,
@@ -170,7 +182,7 @@ def test_run_benchmark_v21_resumes_same_run_directory(
         ]
         checkpoint_callback(completed)
         return (
-            ParasiteV21Result(
+            ParasiteResult(
                 model_id=model_id,
                 base_pi=0.3,
                 pi=0.3,
@@ -179,10 +191,13 @@ def test_run_benchmark_v21_resumes_same_run_directory(
             completed,
         )
 
-    monkeypatch.setattr("mbb.v2.orchestrator.evaluate_model_v21", fake_evaluate_model_v21)
+    monkeypatch.setattr(
+        "parasite_benchmark.benchmark.orchestrator.evaluate_model",
+        fake_evaluate_model,
+    )
 
     results = asyncio.run(
-        run_benchmark_v21(
+        run_benchmark(
             model_ids=["openai/model-a", "anthropic/model-b"],
             judge_model="google/judge-a,x-ai/judge-b",
             judge_runs=1,

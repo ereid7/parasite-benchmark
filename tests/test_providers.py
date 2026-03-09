@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from mbb.utils.providers import (
+from parasite_benchmark.utils.providers import (
     detect_model_family,
     detect_provider,
     is_same_family,

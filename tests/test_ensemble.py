@@ -6,8 +6,8 @@ import logging
 
 import pytest
 
-from mbb.exceptions import ConfigError
-from mbb.judge.ensemble import (
+from parasite_benchmark.exceptions import ConfigError
+from parasite_benchmark.judge.ensemble import (
     JudgeScore,
     aggregate_ensemble,
     check_self_enhancement,

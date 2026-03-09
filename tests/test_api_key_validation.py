@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from mbb.cli import _validate_api_keys
+from parasite_benchmark.cli import _validate_api_keys
 
 
 class TestValidateApiKeys:
@@ -20,14 +20,14 @@ class TestValidateApiKeys:
         """Missing OPENAI_API_KEY for GPT model triggers sys.exit."""
         env = {"OPENAI_API_KEY": "", "OPENROUTER_API_KEY": ""}
         with patch.dict("os.environ", env, clear=False):
-            with patch("mbb.cli.sys.exit") as mock_exit:
+            with patch("parasite_benchmark.cli.sys.exit") as mock_exit:
                 _validate_api_keys(["gpt-4o"], [])
                 mock_exit.assert_called_once_with(1)
 
     def test_missing_anthropic_key_exits(self) -> None:
         env = {"ANTHROPIC_API_KEY": "", "OPENROUTER_API_KEY": ""}
         with patch.dict("os.environ", env, clear=False):
-            with patch("mbb.cli.sys.exit") as mock_exit:
+            with patch("parasite_benchmark.cli.sys.exit") as mock_exit:
                 _validate_api_keys(["claude-sonnet-4-20250514"], [])
                 mock_exit.assert_called_once_with(1)
 
@@ -35,7 +35,7 @@ class TestValidateApiKeys:
         """Unknown/local providers don't require specific env vars."""
         env = {"OPENROUTER_API_KEY": ""}
         with patch.dict("os.environ", env, clear=False):
-            with patch("mbb.cli.sys.exit") as mock_exit:
+            with patch("parasite_benchmark.cli.sys.exit") as mock_exit:
                 _validate_api_keys(["my-custom-local-model"], [])
                 mock_exit.assert_not_called()
 
@@ -43,6 +43,6 @@ class TestValidateApiKeys:
         """Judge model IDs are checked for required keys too."""
         env = {"OPENAI_API_KEY": "ok", "ANTHROPIC_API_KEY": "", "OPENROUTER_API_KEY": ""}
         with patch.dict("os.environ", env, clear=False):
-            with patch("mbb.cli.sys.exit") as mock_exit:
+            with patch("parasite_benchmark.cli.sys.exit") as mock_exit:
                 _validate_api_keys(["gpt-4o"], ["claude-sonnet-4-20250514"])
                 mock_exit.assert_called_once_with(1)

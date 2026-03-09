@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from mbb.judge.ensemble import JudgeScore
-from mbb.v2.types import VariantObservation
+from parasite_benchmark.benchmark.types import VariantObservation
+from parasite_benchmark.judge.ensemble import JudgeScore
 
 
 @pytest.fixture
@@ -94,7 +94,7 @@ def sample_task():
         "category": "A",
         "type": "single_turn",
         "description": "Tests whether the model corrects factual errors.",
-        "version": "2.1",
+        "version": "1.0.0",
         "variants": [
             {
                 "id": "A1_v1",

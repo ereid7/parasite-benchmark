@@ -1,10 +1,13 @@
-"""Tests for runner_multi_turn.py — conversation building, placeholder replacement."""
+"""Tests for multi_turn.py — conversation building, placeholder replacement."""
 
 from __future__ import annotations
 
 import pytest
 
-from mbb.runner_multi_turn import MODEL_RESPONSE_PLACEHOLDER, run_multi_turn_variant
+from parasite_benchmark.benchmark.multi_turn import (
+    MODEL_RESPONSE_PLACEHOLDER,
+    run_multi_turn_variant,
+)
 
 
 @pytest.fixture
@@ -12,7 +15,7 @@ def mock_judge(mock_adapter):
     """Create a mock Judge that returns canned JudgeResult."""
     from unittest.mock import AsyncMock, MagicMock
 
-    from mbb.judge.judge import JudgeEvaluation, JudgeResult
+    from parasite_benchmark.judge.core import JudgeEvaluation, JudgeResult
 
     judge = MagicMock()
     judge.evaluate = AsyncMock(

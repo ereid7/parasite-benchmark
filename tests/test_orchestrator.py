@@ -1,4 +1,4 @@
-"""Tests for mbb.v2.orchestrator — save_results, re-exports."""
+"""Tests for parasite_benchmark.benchmark.orchestrator — save_results, re-exports."""
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from mbb.v2.orchestrator import _save_results
-from mbb.v2.types import VariantObservation
+from parasite_benchmark.benchmark.orchestrator import _save_results
+from parasite_benchmark.benchmark.types import VariantObservation
 
 
 class TestSaveResults:
@@ -172,26 +172,26 @@ class TestReExports:
     """runner.py re-exports still work."""
 
     def test_run_benchmark_from_runner(self) -> None:
-        from mbb.v2.runner import run_benchmark_v21
+        from parasite_benchmark.benchmark.runner import run_benchmark
 
-        assert callable(run_benchmark_v21)
+        assert callable(run_benchmark)
 
     def test_evaluate_model_from_runner(self) -> None:
-        from mbb.v2.runner import evaluate_model_v21
+        from parasite_benchmark.benchmark.runner import evaluate_model
 
-        assert callable(evaluate_model_v21)
+        assert callable(evaluate_model)
 
     def test_run_benchmark_from_v2(self) -> None:
-        from mbb.v2 import run_benchmark_v21
+        from parasite_benchmark.benchmark import run_benchmark
 
-        assert callable(run_benchmark_v21)
+        assert callable(run_benchmark)
 
     def test_rubric_from_runner(self) -> None:
-        from mbb.v2.runner import _rubric_from_task
+        from parasite_benchmark.benchmark.runner import _rubric_from_task
 
         assert callable(_rubric_from_task)
 
     def test_save_results_from_runner(self) -> None:
-        from mbb.v2.runner import _save_results
+        from parasite_benchmark.benchmark.runner import _save_results
 
         assert callable(_save_results)

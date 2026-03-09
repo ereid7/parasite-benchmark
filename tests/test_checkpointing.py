@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from mbb.utils.checkpointing import load_checkpoint, save_checkpoint
+from parasite_benchmark.utils.checkpointing import load_checkpoint, save_checkpoint
 
 
 def test_save_creates_file(tmp_path):

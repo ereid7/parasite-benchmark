@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from mbb.exceptions import TaskLoadError
-from mbb.v2.tasks import _validate_task_dict, check_prompt_collisions
+from parasite_benchmark.benchmark.tasks import _validate_task_dict, check_prompt_collisions
+from parasite_benchmark.exceptions import TaskLoadError
 
 
 class TestValidateTaskDict:

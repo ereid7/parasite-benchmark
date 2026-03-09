@@ -10,11 +10,11 @@ Usage::
 
 import asyncio
 
-from mbb.v2.runner import run_benchmark_v21
+from parasite_benchmark.benchmark.runner import run_benchmark
 
 
 async def main() -> None:
-    results = await run_benchmark_v21(
+    results = await run_benchmark(
         model_ids=["gpt-4o"],
         judge_runs=1,  # 1 run per judge for a quick test
         output_dir="results",

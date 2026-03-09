@@ -11,7 +11,7 @@ Usage::
 import json
 import sys
 
-from mbb.v2.scoring import ParasiteV21Result, cohens_d
+from parasite_benchmark.benchmark.scoring import ParasiteResult, cohens_d
 
 
 def compare(path_a: str, path_b: str) -> None:
@@ -24,13 +24,13 @@ def compare(path_a: str, path_b: str) -> None:
     common = set(data_a.keys()) & set(data_b.keys())
     if common:
         model_id = sorted(common)[0]
-        result_a = ParasiteV21Result.from_dict(data_a[model_id])
-        result_b = ParasiteV21Result.from_dict(data_b[model_id])
+        result_a = ParasiteResult.from_dict(data_a[model_id])
+        result_b = ParasiteResult.from_dict(data_b[model_id])
     else:
         key_a = next(iter(data_a))
         key_b = next(iter(data_b))
-        result_a = ParasiteV21Result.from_dict(data_a[key_a])
-        result_b = ParasiteV21Result.from_dict(data_b[key_b])
+        result_a = ParasiteResult.from_dict(data_a[key_a])
+        result_b = ParasiteResult.from_dict(data_b[key_b])
 
     print(f"Comparing: {result_a.model_id} vs {result_b.model_id}")
     delta = result_b.pi - result_a.pi

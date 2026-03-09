@@ -1,6 +1,6 @@
 """Load and interpret a PARASITE results.json file.
 
-Reconstructs ParasiteV21Result objects and prints a summary.
+Reconstructs ParasiteResult objects and prints a summary.
 
 Usage::
 
@@ -10,7 +10,7 @@ Usage::
 import json
 import sys
 
-from mbb.v2.scoring import ParasiteV21Result
+from parasite_benchmark.benchmark.scoring import ParasiteResult
 
 
 def interpret(path: str) -> None:
@@ -18,7 +18,7 @@ def interpret(path: str) -> None:
         data = json.load(f)
 
     for _model_id, model_data in data.items():
-        result = ParasiteV21Result.from_dict(model_data)
+        result = ParasiteResult.from_dict(model_data)
 
         print(f"Model: {result.model_id}")
         print(f"  PI: {result.pi:.4f} ({result.classification})")

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "parasite-benchmark"
-version = "0.2.1"
+version = "1.0.0"
 description = "PARASITE Benchmark: Measuring extractive behavioral patterns in conversational AI"
 readme = "README.md"
 license = "Apache-2.0"
@@ -49,26 +49,26 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/parasite-benchmark/parasite"
-Documentation = "https://github.com/parasite-benchmark/parasite/tree/main/docs"
-Repository = "https://github.com/parasite-benchmark/parasite"
-Issues = "https://github.com/parasite-benchmark/parasite/issues"
-Changelog = "https://github.com/parasite-benchmark/parasite/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/ereid7/parasite-benchmark"
+Documentation = "https://github.com/ereid7/parasite-benchmark/tree/main/docs"
+Repository = "https://github.com/ereid7/parasite-benchmark"
+Issues = "https://github.com/ereid7/parasite-benchmark/issues"
+Changelog = "https://github.com/ereid7/parasite-benchmark/blob/main/CHANGELOG.md"
 
 [project.scripts]
-parasite = "mbb.cli:main"
+parasite = "parasite_benchmark.cli:main"
 
-[project.entry-points."mbb.adapters"]
-openai = "mbb.models.openai:OpenAIAdapter"
-anthropic = "mbb.models.anthropic:AnthropicAdapter"
-local = "mbb.models.local:LocalAdapter"
+[project.entry-points."parasite_benchmark.adapters"]
+openai = "parasite_benchmark.adapters.openai:OpenAIAdapter"
+anthropic = "parasite_benchmark.adapters.anthropic:AnthropicAdapter"
+local = "parasite_benchmark.adapters.local:LocalAdapter"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mbb"]
+packages = ["src/parasite_benchmark"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "src/mbb/",
+    "src/parasite_benchmark/",
     "data/",
     "README.md",
 ]
@@ -85,22 +85,22 @@ ignore = ["B905"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]
 "examples/**" = ["S101", "T201"]
-"src/mbb/cli.py" = ["C901"]
-"src/mbb/judge/debiasing.py" = ["E501", "C901"]
-"src/mbb/judge/judge.py" = ["E501"]
-"src/mbb/v2/gaming.py" = ["E501"]
-"src/mbb/v2/generate_tests.py" = ["E501", "S311", "RUF046"]
-"src/mbb/v2/reliability.py" = ["E501", "C901"]
-"src/mbb/v2/reporting.py" = ["E501"]
-"src/mbb/v2/runner.py" = ["E501", "C901", "S311"]
-"src/mbb/v2/evaluator.py" = ["E501", "C901", "S311"]
-"src/mbb/v2/orchestrator.py" = ["E501", "C901"]
-"src/mbb/v2/scoring.py" = ["E501"]
-"src/mbb/v2/spec.py" = ["E501", "C901"]
-"src/mbb/v2/types.py" = ["A005"]
+"src/parasite_benchmark/cli.py" = ["C901"]
+"src/parasite_benchmark/judge/debiasing.py" = ["E501", "C901"]
+"src/parasite_benchmark/judge/core.py" = ["E501"]
+"src/parasite_benchmark/benchmark/gaming.py" = ["E501"]
+"src/parasite_benchmark/benchmark/generate_tests.py" = ["E501", "S311", "RUF046"]
+"src/parasite_benchmark/benchmark/reliability.py" = ["E501", "C901"]
+"src/parasite_benchmark/benchmark/reporting.py" = ["E501"]
+"src/parasite_benchmark/benchmark/runner.py" = ["E501", "C901", "S311"]
+"src/parasite_benchmark/benchmark/evaluator.py" = ["E501", "C901", "S311"]
+"src/parasite_benchmark/benchmark/orchestrator.py" = ["E501", "C901"]
+"src/parasite_benchmark/benchmark/scoring.py" = ["E501"]
+"src/parasite_benchmark/benchmark/spec.py" = ["E501", "C901"]
+"src/parasite_benchmark/benchmark/types.py" = ["A005"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["mbb"]
+known-first-party = ["parasite_benchmark"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

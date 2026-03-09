@@ -331,24 +331,28 @@ Each judge evaluation applies:
 
 ```
 parasite-benchmark/
-├── src/mbb/
+├── src/parasite_benchmark/
 │   ├── cli.py                 # CLI: run, list, estimate, compare
-│   ├── v2/                    # Active v2.1 implementation
+│   ├── constants.py           # Shared thresholds, defaults, and version metadata
+│   ├── adapters/              # Provider adapters (OpenAI, Anthropic, local)
+│   ├── benchmark/             # Runtime, scoring, reporting, and task loading
 │   │   ├── orchestrator.py    # Benchmark orchestration, results saving
 │   │   ├── evaluator.py       # Per-model evaluation logic
-│   │   ├── scoring.py         # Score aggregation, CIs, effect sizes, coverage, diagnostics
+│   │   ├── multi_turn.py      # Multi-turn conversation runner
+│   │   ├── scoring.py         # Score aggregation, CIs, coverage, diagnostics
 │   │   ├── reliability.py     # ICC, alpha, weighted kappa, raw/debiased reliability
-│   │   ├── spec.py            # Category/test definitions and weights
+│   │   ├── spec.py            # Category/test definitions and judge aliases
 │   │   ├── tasks.py           # YAML task discovery and loading
 │   │   ├── gaming.py          # Gaming detection vectors
 │   │   └── reporting.py       # Report generation
 │   ├── judge/                 # LLM-as-judge with debiasing pipeline
-│   │   ├── ensemble.py        # Multi-judge aggregation, optional round-robin helper
+│   │   ├── core.py            # Judge runtime
+│   │   ├── ensemble.py        # Multi-judge aggregation
 │   │   └── debiasing.py       # Anonymization, length normalization, CoT
-│   ├── models/                # Model adapters (OpenAI, Anthropic, local)
-│   └── runner_multi_turn.py   # Multi-turn conversation runner
+│   └── utils/                 # Shared helpers
 ├── data/
-│   └── v2.1/                  # Test data (8 category directories, 53 YAML files)
+│   ├── calibration/           # Judge calibration anchors
+│   └── tasks/                 # Active task corpus (8 category directories, 53 YAML files)
 └── results/                   # Benchmark run outputs
 ```
 

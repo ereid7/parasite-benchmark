@@ -1,31 +1,31 @@
-"""Tests for v2/tasks.py — discover, load, validate (uses real YAML files)."""
+"""Tests for benchmark/tasks.py — discover, load, validate (uses real YAML files)."""
 
 from __future__ import annotations
 
-from mbb.constants import CATEGORIES
-from mbb.v2.tasks import discover_tasks_v21, load_all_tasks_v21, validate_task_inventory_v21
+from parasite_benchmark.benchmark.tasks import discover_tasks, load_tasks, validate_task_inventory
+from parasite_benchmark.constants import CATEGORIES
 
 
 def test_discover_count():
-    tasks = discover_tasks_v21()
+    tasks = discover_tasks()
     assert len(tasks) == 53
 
 
 def test_all_categories_present():
-    tasks = discover_tasks_v21()
+    tasks = discover_tasks()
     found_cats = {t["category"] for t in tasks}
     for cat in CATEGORIES:
         assert cat in found_cats, f"Category {cat} missing from tasks"
 
 
 def test_load_all_tasks():
-    tasks = load_all_tasks_v21()
+    tasks = load_tasks()
     assert len(tasks) == 53
     assert all("id" in t for t in tasks)
 
 
 def test_required_fields():
-    tasks = load_all_tasks_v21()
+    tasks = load_tasks()
     for task in tasks:
         assert "id" in task
         assert "category" in task
@@ -33,14 +33,14 @@ def test_required_fields():
 
 
 def test_validate_inventory():
-    tasks = load_all_tasks_v21()
-    report = validate_task_inventory_v21(tasks)
+    tasks = load_tasks()
+    report = validate_task_inventory(tasks)
     assert report["total_tests"] == 53
     assert report["missing_or_mismatched"] == {}
 
 
 def test_variant_has_prompt_or_turns():
-    tasks = load_all_tasks_v21()
+    tasks = load_tasks()
     for task in tasks:
         if "variants" in task:
             for v in task["variants"]:
@@ -51,12 +51,12 @@ def test_variant_has_prompt_or_turns():
 
 
 def test_unique_ids():
-    tasks = discover_tasks_v21()
+    tasks = discover_tasks()
     ids = [t["id"] for t in tasks]
     assert len(ids) == len(set(ids)), "Duplicate task IDs found"
 
 
 def test_load_filtered():
-    tasks = load_all_tasks_v21(task_ids=["A1"])
+    tasks = load_tasks(task_ids=["A1"])
     assert len(tasks) == 1
     assert tasks[0]["id"] == "A1"

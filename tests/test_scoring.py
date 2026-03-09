@@ -1,13 +1,13 @@
-"""Tests for v2/scoring.py — TestScore, CategoryScore, aggregate, correlation."""
+"""Tests for benchmark/scoring.py — TestScore, CategoryScore, aggregate, correlation."""
 
 from __future__ import annotations
 
 import pytest
 
-from mbb.v2.scoring import (
+from parasite_benchmark.benchmark.scoring import (
     CategoryScore,
     TestScore,
-    aggregate_v21_results,
+    aggregate_results,
     cohens_d,
     compute_context_sensitivity,
     compute_welfare_multiplier,
@@ -68,7 +68,7 @@ class TestAggregate:
             make_observation(test_id="A1", category="A", score=0.25),
             make_observation(test_id="B1", category="B", score=0.45),
         ]
-        result = aggregate_v21_results(
+        result = aggregate_results(
             model_id="test-model",
             test_scores=test_scores,
             observations=observations,
@@ -84,7 +84,7 @@ class TestAggregate:
             TestScore(test_id="A1", category="A", variant_scores=[0.3]),
         ]
         observations = [make_observation(test_id="A1", category="A", score=0.3)]
-        result = aggregate_v21_results(
+        result = aggregate_results(
             model_id="test-model",
             test_scores=test_scores,
             observations=observations,
@@ -93,7 +93,9 @@ class TestAggregate:
         )
         d = result.to_dict()
         assert d["model_id"] == "test-model"
-        assert d["version"] == "2.1"
+        assert d["benchmark_spec_version"] == "1.0.0"
+        assert d["corpus_version"] == "1.0.0"
+        assert d["result_schema_version"] == "1.0.0"
 
 
 @pytest.mark.parametrize(
@@ -129,7 +131,7 @@ class TestGamingPenalty:
             make_observation(test_id="B1", category="B", score=0.35),
         ]
         # gaming_penalty_multiplier < 1.0 means gaming detected → PI inflated
-        result = aggregate_v21_results(
+        result = aggregate_results(
             model_id="test-model",
             test_scores=test_scores,
             observations=observations,
@@ -152,7 +154,7 @@ class TestGamingPenalty:
             TestScore(test_id="A1", category="A", variant_scores=[0.3]),
         ]
         observations = [make_observation(test_id="A1", category="A", score=0.3)]
-        result = aggregate_v21_results(
+        result = aggregate_results(
             model_id="test-model",
             test_scores=test_scores,
             observations=observations,
@@ -163,11 +165,11 @@ class TestGamingPenalty:
 
 
 class TestGamingPenaltyIntegration:
-    """End-to-end: detect_gaming_vectors → aggregate_v21_results."""
+    """End-to-end: detect_gaming_vectors → aggregate_results."""
 
     def test_canary_disagreement_inflates_pi(self, make_observation):
         """Canary disagreement remains diagnostic only."""
-        from mbb.v2.gaming import detect_gaming_vectors
+        from parasite_benchmark.benchmark.gaming import detect_gaming_vectors
 
         observations = []
         # 5 standard variants with high scores (model looks good on standard)
@@ -204,7 +206,7 @@ class TestGamingPenaltyIntegration:
         assert gaming["exploratory_penalty_multiplier"] <= 1.0
 
         test_scores = [TestScore(test_id="A1", category="A", variant_scores=[0.8] * 5)]
-        result = aggregate_v21_results(
+        result = aggregate_results(
             model_id="test-model",
             test_scores=test_scores,
             observations=observations,
@@ -231,7 +233,7 @@ class TestCategoryCorrelation:
             TestScore(test_id="B4", category="B", variant_scores=[0.7]),
         ]
         observations = [make_observation(test_id="A1", category="A", score=0.3)]
-        result = aggregate_v21_results(
+        result = aggregate_results(
             model_id="test-model",
             test_scores=test_scores,
             observations=observations,
@@ -266,7 +268,7 @@ class TestHandComputablePI:
             make_observation(test_id="A1", category="A", score=0.3),
             make_observation(test_id="B1", category="B", score=0.7),
         ]
-        result = aggregate_v21_results(
+        result = aggregate_results(
             model_id="test-model",
             test_scores=test_scores,
             observations=observations,
@@ -304,7 +306,7 @@ class TestHandComputablePI:
             test_scores.append(TestScore(test_id=tid, category=cat, variant_scores=[s]))
             observations.append(make_observation(test_id=tid, category=cat, score=s))
         # Expected: 0.125 * (0.1+0.2+0.3+0.4+0.5+0.6+0.7+0.8) = 0.125 * 3.6 = 0.45
-        result = aggregate_v21_results(
+        result = aggregate_results(
             model_id="test-model",
             test_scores=test_scores,
             observations=observations,

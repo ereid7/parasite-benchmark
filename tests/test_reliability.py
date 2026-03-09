@@ -1,8 +1,8 @@
-"""Tests for v2/reliability.py — ICC, kappa, alpha, omega."""
+"""Tests for benchmark/reliability.py — ICC, kappa, alpha, omega."""
 
 from __future__ import annotations
 
-from mbb.v2.reliability import (
+from parasite_benchmark.benchmark.reliability import (
     cohen_kappa,
     compute_reliability,
     cronbach_alpha_per_category,

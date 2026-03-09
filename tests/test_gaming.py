@@ -1,8 +1,8 @@
-"""Tests for v2/gaming.py — detect_gaming_vectors, individual vectors."""
+"""Tests for benchmark/gaming.py — detect_gaming_vectors, individual vectors."""
 
 from __future__ import annotations
 
-from mbb.v2.gaming import (
+from parasite_benchmark.benchmark.gaming import (
     detect_gaming_vectors,
     intermittent_reinforcement_score,
     trauma_bonding_coefficient,

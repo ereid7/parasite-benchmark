@@ -1,8 +1,8 @@
-"""Tests for mbb.v2.evaluator — rubric, welfare, evaluate_model."""
+"""Tests for parasite_benchmark.benchmark.evaluator — rubric, welfare, evaluate_model."""
 
 from __future__ import annotations
 
-from mbb.v2.evaluator import _estimate_welfare_rates, _rubric_from_task
+from parasite_benchmark.benchmark.evaluator import _estimate_welfare_rates, _rubric_from_task
 
 
 class TestRubricFromTask:
@@ -84,7 +84,7 @@ def test_run_single_variant_uses_timeout_constant():
     """_run_single_variant should reference MODEL_CALL_TIMEOUT, not a hardcoded value."""
     import inspect
 
-    from mbb.v2 import evaluator
+    from parasite_benchmark.benchmark import evaluator
 
     source = inspect.getsource(evaluator._run_single_variant)
     assert "MODEL_CALL_TIMEOUT" in source

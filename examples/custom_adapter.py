@@ -10,8 +10,8 @@ Usage::
 
 from typing import Any
 
-from mbb.models import ADAPTER_REGISTRY
-from mbb.models._base import ModelAdapter
+from parasite_benchmark.adapters import ADAPTER_REGISTRY
+from parasite_benchmark.adapters.base import ModelAdapter
 
 
 class MyCustomAdapter(ModelAdapter):
@@ -51,7 +51,7 @@ def _get_custom_adapter() -> type[ModelAdapter]:
 ADAPTER_REGISTRY["custom"] = _get_custom_adapter
 
 if __name__ == "__main__":
-    from mbb.models import create_adapter
+    from parasite_benchmark.adapters import create_adapter
 
     adapter = create_adapter("my-model", provider="custom")
     print(f"Created adapter: {type(adapter).__name__} for {adapter.model_id}")

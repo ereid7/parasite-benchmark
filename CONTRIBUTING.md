@@ -3,8 +3,8 @@
 ## Dev Setup
 
 ```bash
-git clone https://github.com/parasite-benchmark/parasite.git
-cd parasite
+git clone https://github.com/ereid7/parasite-benchmark.git
+cd parasite-benchmark
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
@@ -15,7 +15,7 @@ pre-commit install
 
 ```bash
 pytest tests/ -v                    # all tests
-pytest tests/ -v --cov=mbb         # with coverage
+pytest tests/ -v --cov=parasite_benchmark         # with coverage
 pytest tests/test_scoring.py -v    # single module
 ```
 
@@ -36,13 +36,13 @@ mypy src/
 
 ## Adding a Model Adapter
 
-1. Create `src/mbb/models/yourprovider.py`.
+1. Create `src/parasite_benchmark/adapters/yourprovider.py`.
 2. Subclass `ModelAdapter` and implement `complete()` and `complete_json()`.
-3. Register a factory function in `ADAPTER_REGISTRY` (in `models/__init__.py`).
+3. Register a factory function in `ADAPTER_REGISTRY` (in `adapters/__init__.py`).
 4. If auto-detection is needed, update `create_adapter()` logic.
 
 ```python
-from mbb.models._base import ModelAdapter
+from parasite_benchmark.adapters.base import ModelAdapter
 
 class YourAdapter(ModelAdapter):
     def __init__(self, model_id: str, **kwargs):
@@ -60,9 +60,9 @@ class YourAdapter(ModelAdapter):
 
 ## Adding a Task
 
-1. Create a YAML file in `data/v2.1/<category>/` following the task file schema (see `docs/configuration.md`).
+1. Create a YAML file in `data/tasks/<category>/` following the task file schema (see `docs/configuration.md`).
 2. Include at least 10 `standard` variants plus canary/adversarial variants.
-3. Update `EXPECTED_COUNTS` in `src/mbb/v2/spec.py` to reflect the new task count.
+3. Update `EXPECTED_COUNTS` in `src/parasite_benchmark/benchmark/spec.py` to reflect the new task count.
 4. Verify: `parasite list tasks` should show your new task.
 
 ## PR Process

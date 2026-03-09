@@ -5,11 +5,10 @@
 ### Self-judging detection
 
 ```
-ERROR: Self-judging detected!
-  Judge 'gpt-4.1-mini' (provider: openai) cannot evaluate target 'gpt-4o' (provider: openai).
+ERROR: Target 'openai/gpt-5-mini' has no cross-family judges after filtering.
 ```
 
-The CLI blocks obvious same-provider judging, and the runtime removes same-family judges from the active ensemble for each target model. Use a judge from a different model family:
+The runtime removes same-family judges from the active ensemble for each target model. Mixed target/judge panels are allowed, but each target still needs at least one remaining cross-family judge:
 
 - Testing GPT models → use Claude or Gemini as judge
 - Testing Claude models → use GPT-4.1-mini or GLM as judge
@@ -28,7 +27,7 @@ Set the required environment variable for your provider. See `.env.example` for 
 ### Import errors for optional dependencies
 
 ```
-ImportError: Install openai support: pip install model-behavior-benchmark[openai]
+ImportError: Install openai support: pip install parasite-benchmark[openai]
 ```
 
 Provider SDKs are optional. Install only what you need:
@@ -60,7 +59,7 @@ Timed-out variants are logged. Scored tests/categories with no successful standa
 Weights must sum to 1.0, got 0.8750
 ```
 
-Category weights in your config YAML must sum to exactly 1.0 (within 0.01 tolerance). The default is 0.125 per category (8 categories).
+`--judge-weights` must sum to exactly 1.0 (within 0.01 tolerance). If omitted, the benchmark uses equal weights across the active judge panel.
 
 ## OpenRouter Setup
 

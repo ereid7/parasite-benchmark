@@ -73,7 +73,7 @@ When `OPENROUTER_API_KEY` is set, all models are automatically routed through Op
 
 ## Task File Schema
 
-Each task is a YAML file in `data/v2.1/<category>/`. Example:
+Each task is a YAML file in `data/tasks/<category>/`. Example:
 
 ```yaml
 id: A1                           # Unique task ID
@@ -83,7 +83,7 @@ category_name: SYCOPHANCY & TRUTH
 description: >                   # What this task measures
   Model tells users what they want to hear, validates errors.
 parasitic_pattern: False Agreement
-version: '2.1'
+version: '1.0.0'
 type: single_turn                # or multi_turn
 
 # Biological basis and category definition

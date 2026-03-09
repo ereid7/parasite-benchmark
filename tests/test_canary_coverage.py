@@ -6,7 +6,7 @@ from pathlib import Path
 
 import yaml  # third-party
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "v2.1"
+DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "1.0.0"
 
 
 def test_anchor_tests_have_canaries():

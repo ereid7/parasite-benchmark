@@ -1,4 +1,4 @@
-"""Tests for models/_base.py — ABC enforcement."""
+"""Tests for adapters/base.py — ABC enforcement."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from mbb.models._base import ModelAdapter
+from parasite_benchmark.adapters.base import ModelAdapter
 
 
 def test_abc_cannot_instantiate():

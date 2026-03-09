@@ -1,10 +1,10 @@
-"""Tests for mbb.exceptions — hierarchy, inheritance, catch-all."""
+"""Tests for parasite_benchmark.exceptions — hierarchy, inheritance, catch-all."""
 
 from __future__ import annotations
 
 import pytest
 
-from mbb.exceptions import (
+from parasite_benchmark.exceptions import (
     ConfigError,
     JudgeError,
     ModelAdapterError,

@@ -1,4 +1,4 @@
-"""Tests for mbb.models adapter registry and entry_points fallback."""
+"""Tests for parasite_benchmark.adapters adapter registry and entry_points fallback."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from mbb.exceptions import ModelAdapterError
-from mbb.models import ADAPTER_REGISTRY, create_adapter
-from mbb.models._base import ModelAdapter
+from parasite_benchmark.adapters import ADAPTER_REGISTRY, create_adapter
+from parasite_benchmark.adapters.base import ModelAdapter
+from parasite_benchmark.exceptions import ModelAdapterError
 
 
 class TestBuiltinProviders:

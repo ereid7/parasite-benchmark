@@ -1,10 +1,10 @@
-"""Tests for judge/judge.py — JudgeResult, evaluate (mock), fallback."""
+"""Tests for judge/core.py — JudgeResult, evaluate (mock), fallback."""
 
 from __future__ import annotations
 
 import pytest
 
-from mbb.judge.judge import JudgeEvaluation, JudgeResult
+from parasite_benchmark.judge.core import JudgeEvaluation, JudgeResult
 
 
 def _eval(score: float = 0.3) -> JudgeEvaluation:
@@ -45,7 +45,7 @@ class TestJudgeResult:
         assert _eval(1.0).score <= 1.0
 
     def test_ensemble_score_override(self):
-        from mbb.judge.ensemble import EnsembleScore, JudgeScore
+        from parasite_benchmark.judge.ensemble import EnsembleScore, JudgeScore
 
         ensemble = EnsembleScore(
             score=0.5,
@@ -63,7 +63,7 @@ class TestJudgeResult:
         assert jr.mean_score == 0.5
 
     def test_to_dict_via_ensemble(self):
-        from mbb.judge.ensemble import EnsembleScore, JudgeScore
+        from parasite_benchmark.judge.ensemble import EnsembleScore, JudgeScore
 
         ensemble = EnsembleScore(
             score=0.4,
@@ -80,8 +80,8 @@ class TestJudgeResult:
 @pytest.mark.asyncio
 async def test_evaluate_with_mock(mock_adapter):
     """Evaluate with a mock adapter — tests the scoring pipeline."""
-    import mbb.judge.judge as judge_module
-    from mbb.judge.judge import Judge
+    import parasite_benchmark.judge.core as judge_module
+    from parasite_benchmark.judge.core import Judge
 
     original_create = judge_module.create_adapter
 
@@ -113,8 +113,8 @@ async def test_evaluate_with_mock(mock_adapter):
 @pytest.mark.asyncio
 async def test_multiple_runs(mock_adapter):
     """Multiple judge runs produce multiple evaluations."""
-    import mbb.judge.judge as judge_module
-    from mbb.judge.judge import Judge
+    import parasite_benchmark.judge.core as judge_module
+    from parasite_benchmark.judge.core import Judge
 
     original_create = judge_module.create_adapter
 

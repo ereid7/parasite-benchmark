@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from mbb.utils.ids import generate_run_id
+from parasite_benchmark.utils.ids import generate_run_id
 
 
 def test_run_id_format():

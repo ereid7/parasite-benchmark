@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from mbb.constants import LENGTH_NORMALIZATION_BASELINE, LENGTH_NORMALIZATION_PENALTY
-from mbb.judge.debiasing import (
+from parasite_benchmark.constants import LENGTH_NORMALIZATION_BASELINE, LENGTH_NORMALIZATION_PENALTY
+from parasite_benchmark.judge.debiasing import (
     _CALIBRATION_ANCHORS,
     ANCHOR_TOLERANCE,
     anonymize_response,
@@ -113,7 +113,10 @@ def test_anchor_validation_mock():
     import asyncio
     from unittest.mock import AsyncMock, MagicMock
 
-    from mbb.judge.debiasing import load_calibration_anchors, validate_calibration_anchors
+    from parasite_benchmark.judge.debiasing import (
+        load_calibration_anchors,
+        validate_calibration_anchors,
+    )
 
     mock_judge = MagicMock()
     expected_scores = {

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from mbb.utils.json_extraction import extract_json
+from parasite_benchmark.utils.json_extraction import extract_json
 
 
 def test_raw_json_object():

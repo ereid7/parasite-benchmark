@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from click.testing import CliRunner
 
-from mbb.cli import main
+from parasite_benchmark.cli import main
 
 
 def test_list_tasks():
