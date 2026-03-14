@@ -63,7 +63,7 @@ Weights must sum to 1.0, got 0.8750
 
 ## OpenRouter Setup
 
-Set the `OPENROUTER_API_KEY` environment variable. Once set, **all** models are automatically routed through OpenRouter — no other configuration changes are needed. Model IDs are passed as-is (e.g., `gpt-4o`, `claude-sonnet-4-20250514`).
+Set the `OPENROUTER_API_KEY` environment variable. Once set, **all** models are automatically routed through OpenRouter — no other configuration changes are needed. This is the easiest setup for a first run because one key can cover both targets and cross-family judges. Model IDs are passed as-is (e.g., `gpt-4o`, `claude-sonnet-4-20250514`).
 
 ```bash
 export OPENROUTER_API_KEY=sk-or-...

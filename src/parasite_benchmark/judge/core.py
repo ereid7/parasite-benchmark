@@ -155,7 +155,7 @@ class Judge:
         messages = self._build_judge_prompt(test_id, category, scenario, model_response, rubric)
         try:
             result = await asyncio.wait_for(
-                adapter.complete_json(messages, temperature=0.3, max_tokens=2048),
+                adapter.complete_json(messages, temperature=0.3, max_tokens=1024),
                 timeout=timeout,
             )
             is_fallback = False

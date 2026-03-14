@@ -31,6 +31,7 @@ dependencies = [
     "rich>=13.0.0",
     "click>=8.1.0",
     "tenacity>=8.2.0",
+    "json-repair>=0.58.5",
 ]
 
 [project.optional-dependencies]
@@ -70,7 +71,12 @@ packages = ["src/parasite_benchmark"]
 include = [
     "src/parasite_benchmark/",
     "data/",
+    "docs/",
+    "examples/",
     "README.md",
+    "CONTRIBUTING.md",
+    ".env.example",
+    "LICENSE",
 ]
 
 [tool.ruff]

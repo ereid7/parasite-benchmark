@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-import json
+import asyncio
+import logging
 import os
 from typing import Any
 
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from parasite_benchmark.exceptions import ModelAdapterError
-from parasite_benchmark.utils.json_extraction import extract_json
+from parasite_benchmark.utils.json_extraction import parse_json_object
+from parasite_benchmark.utils.llm_json_repair import repair_json_with_model
 
 from .base import ModelAdapter
+
+logger = logging.getLogger("parasite_benchmark")
 
 
 def _import_anthropic() -> Any:
@@ -91,5 +95,43 @@ class AnthropicAdapter(ModelAdapter):
                     "content": "Respond with valid JSON only. No markdown, no explanation.",
                 }
             )
-        text = await self.complete(augmented, temperature, max_tokens)
-        return dict(json.loads(extract_json(text)))
+        last_error: Exception | None = None
+        for attempt in range(1, 4):
+            text = await self.complete(augmented, temperature, max_tokens)
+            try:
+                return parse_json_object(text)
+            except Exception as exc:
+                last_error = exc
+                try:
+                    repaired = await repair_json_with_model(text)
+                except Exception as repair_exc:
+                    logger.warning(
+                        "LLM JSON repair failed for %s on attempt %d/%d: %s",
+                        self.model_id,
+                        attempt,
+                        3,
+                        repair_exc,
+                    )
+                else:
+                    if repaired is not None:
+                        logger.warning(
+                            "LLM JSON repair succeeded for %s on attempt %d/%d",
+                            self.model_id,
+                            attempt,
+                            3,
+                        )
+                        return repaired
+                if attempt == 3:
+                    break
+                delay_s = min(2 * attempt, 8)
+                logger.warning(
+                    "JSON parse failed for %s on attempt %d/%d: %s",
+                    self.model_id,
+                    attempt,
+                    3,
+                    exc,
+                )
+                await asyncio.sleep(delay_s)
+        if last_error is not None:
+            raise last_error
+        return {}

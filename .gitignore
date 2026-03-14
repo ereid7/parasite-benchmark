@@ -26,3 +26,6 @@ results_full/
 
 # Working documents (audit, analysis)
 .work/
+tmp/
+sources/
+.DS_Store

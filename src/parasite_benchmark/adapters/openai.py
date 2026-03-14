@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 import asyncio
-import json
+import logging
 import os
 from typing import Any
 
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from parasite_benchmark.exceptions import ModelAdapterError
-from parasite_benchmark.utils.json_extraction import extract_json
+from parasite_benchmark.utils.json_extraction import parse_json_object
+from parasite_benchmark.utils.llm_json_repair import repair_json_with_model
 
 from .base import ModelAdapter
+
+logger = logging.getLogger("parasite_benchmark")
 
 
 def _import_openai() -> Any:
@@ -96,6 +99,18 @@ class OpenAIAdapter(ModelAdapter):
     async def _complete_json_vercel(self, **kwargs: Any) -> Any:
         return await self._client.chat.completions.create(**kwargs)
 
+    async def _request_json_completion(self, **kwargs: Any) -> Any:
+        try:
+            if self._is_vercel or self._is_openrouter:
+                return await self._complete_json_vercel(**kwargs)
+            return await self._client.chat.completions.create(**kwargs)
+        except Exception:
+            fallback_kwargs = dict(kwargs)
+            fallback_kwargs.pop("response_format", None)
+            if self._is_vercel or self._is_openrouter:
+                return await self._complete_json_vercel(**fallback_kwargs)
+            return await self._client.chat.completions.create(**fallback_kwargs)
+
     async def complete_json(
         self,
         messages: list[dict[str, str]],
@@ -113,21 +128,53 @@ class OpenAIAdapter(ModelAdapter):
 
         if self._is_glm or self._is_vercel or self._is_openrouter:
             kwargs.pop("response_format", None)
-        try:
-            if self._is_vercel or self._is_openrouter:
-                resp = await self._complete_json_vercel(**kwargs)
-            else:
-                resp = await self._client.chat.completions.create(**kwargs)
-        except Exception:
-            kwargs.pop("response_format", None)
-            if self._is_vercel or self._is_openrouter:
-                resp = await self._complete_json_vercel(**kwargs)
-            else:
-                resp = await self._client.chat.completions.create(**kwargs)
+        parse_attempts = 3 if (self._is_vercel or self._is_openrouter or self._is_glm) else 2
+        last_error: Exception | None = None
+        for attempt in range(1, parse_attempts + 1):
+            resp = await self._request_json_completion(**kwargs)
+            text = self._extract_content(resp.choices[0].message) or "{}"
+            try:
+                parsed = parse_json_object(text)
+                if self._is_glm:
+                    await asyncio.sleep(10)  # GLM rate limit buffer
+                return parsed
+            except Exception as exc:
+                last_error = exc
+                try:
+                    repaired = await repair_json_with_model(text)
+                except Exception as repair_exc:
+                    logger.warning(
+                        "LLM JSON repair failed for %s on attempt %d/%d: %s",
+                        self.model_id,
+                        attempt,
+                        parse_attempts,
+                        repair_exc,
+                    )
+                else:
+                    if repaired is not None:
+                        logger.warning(
+                            "LLM JSON repair succeeded for %s on attempt %d/%d",
+                            self.model_id,
+                            attempt,
+                            parse_attempts,
+                        )
+                        if self._is_glm:
+                            await asyncio.sleep(10)
+                        return repaired
+                if attempt == parse_attempts:
+                    break
+                delay_s = min(2 * attempt, 8)
+                logger.warning(
+                    "JSON parse failed for %s on attempt %d/%d: %s",
+                    self.model_id,
+                    attempt,
+                    parse_attempts,
+                    exc,
+                )
+                await asyncio.sleep(delay_s)
 
-        text = self._extract_content(resp.choices[0].message)
         if self._is_glm:
-            await asyncio.sleep(10)  # GLM rate limit buffer
-        text = text or "{}"
-        text = extract_json(text)
-        return dict(json.loads(text))
+            await asyncio.sleep(10)
+        if last_error is not None:
+            raise last_error
+        return {}

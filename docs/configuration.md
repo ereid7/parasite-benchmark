@@ -1,5 +1,7 @@
 # Configuration
 
+For a first run, start with the top-level [README](../README.md). This page is the full CLI and configuration reference.
+
 ## CLI Reference
 
 ### `parasite run`
